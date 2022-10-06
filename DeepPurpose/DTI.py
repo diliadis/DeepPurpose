@@ -20,6 +20,7 @@ import copy
 from prettytable import PrettyTable
 
 import os
+from datetime import datetime
 
 from DeepPurpose.utils import *
 from DeepPurpose.model_helper import Encoder_MultipleLayers, Embeddings        
@@ -27,9 +28,9 @@ from DeepPurpose.encoders import *
 
 from torch.utils.tensorboard import SummaryWriter
 
-class Classifier(nn.Sequential):
+class MLP_Classifier(nn.Sequential):
 	def __init__(self, model_drug, model_protein, **config):
-		super(Classifier, self).__init__()
+		super(MLP_Classifier, self).__init__()
 		self.input_dim_drug = config['hidden_dim_drug']
 		self.input_dim_protein = config['hidden_dim_protein']
 
@@ -48,6 +49,7 @@ class Classifier(nn.Sequential):
 		# each encoding
 		v_D = self.model_drug(v_D)
 		v_P = self.model_protein(v_P)
+
 		# concatenate and classify
 		v_f = torch.cat((v_D, v_P), 1)
 		for i, l in enumerate(self.predictor):
@@ -55,6 +57,27 @@ class Classifier(nn.Sequential):
 				v_f = l(v_f)
 			else:
 				v_f = F.relu(self.dropout(l(v_f)))
+		return v_f
+
+class Dot_Product_Classifier(nn.Sequential):
+	def __init__(self, model_drug, model_protein, **config):
+		super(Dot_Product_Classifier, self).__init__()
+		self.input_dim_drug = config['hidden_dim_drug']
+		self.input_dim_protein = config['hidden_dim_protein']
+
+		self.model_drug = model_drug
+		self.model_protein = model_protein
+
+		self.dropout = nn.Dropout(0.1)
+
+
+	def forward(self, v_D, v_P):
+		# each encoding
+		v_D = self.model_drug(v_D)
+		v_P = self.model_protein(v_P)
+		
+		v_f = torch.unsqueeze((v_D*v_P).sum(1), 1)
+
 		return v_f
 
 def model_initialize(**config):
@@ -225,9 +248,21 @@ class DBTA:
 		drug_encoding = config['drug_encoding']
 		target_encoding = config['target_encoding']
 
+		if 'cuda_id' in config:
+			if config['cuda_id'] is None:
+				self.device = torch.device('cpu')
+			else:
+				self.device = torch.device('cuda:' + str(config['cuda_id']) if torch.cuda.is_available() else 'cpu')
+		else:
+			self.device = torch.device('cpu')
+
+		config['device'] = self.device
+		
+		print('Using the following device: '+str(self.device))
+
 		if drug_encoding == 'Morgan' or drug_encoding == 'ErG' or drug_encoding=='Pubchem' or drug_encoding=='Daylight' or drug_encoding=='rdkit_2d_normalized' or drug_encoding == 'ESPF':
 			# Future TODO: support multiple encoding scheme for static input 
-			self.model_drug = MLP(config['input_dim_drug'], config['hidden_dim_drug'], config['mlp_hidden_dims_drug'])
+			self.model_drug = MLP(config['input_dim_drug'], config['hidden_dim_drug'], config['mlp_hidden_dims_drug'], device = config['device'])
 		elif drug_encoding == 'CNN':
 			self.model_drug = CNN('drug', **config)
 		elif drug_encoding == 'CNN_RNN':
@@ -235,12 +270,13 @@ class DBTA:
 		elif drug_encoding == 'Transformer':
 			self.model_drug = transformer('drug', **config)
 		elif drug_encoding == 'MPNN':
-			self.model_drug = MPNN(config['hidden_dim_drug'], config['mpnn_depth'])
+			self.model_drug = MPNN(config['hidden_dim_drug'], config['mpnn_depth'], device = config['device'])
 		elif drug_encoding == 'DGL_GCN':
 			self.model_drug = DGL_GCN(in_feats = 74, 
 									hidden_feats = [config['gnn_hid_dim_drug']] * config['gnn_num_layers'], 
 									activation = [config['gnn_activation']] * config['gnn_num_layers'], 
-									predictor_dim = config['hidden_dim_drug'])
+									predictor_dim = config['hidden_dim_drug'],
+									device = config['device'])
 		elif drug_encoding == 'DGL_NeuralFP':
 			self.model_drug = DGL_NeuralFP(in_feats = 74, 
 									hidden_feats = [config['gnn_hid_dim_drug']] * config['gnn_num_layers'], 
@@ -248,23 +284,25 @@ class DBTA:
 									activation = [config['gnn_activation']] * config['gnn_num_layers'], 
 									predictor_hidden_size = config['neuralfp_predictor_hid_dim'],
 									predictor_dim = config['hidden_dim_drug'],
-									predictor_activation = config['neuralfp_predictor_activation'])
+									predictor_activation = config['neuralfp_predictor_activation'],
+									device = config['device'])
 		elif drug_encoding == 'DGL_GIN_AttrMasking':
-			self.model_drug = DGL_GIN_AttrMasking(predictor_dim = config['hidden_dim_drug'])
+			self.model_drug = DGL_GIN_AttrMasking(predictor_dim = config['hidden_dim_drug'], device = config['device'])
 		elif drug_encoding == 'DGL_GIN_ContextPred':
-			self.model_drug = DGL_GIN_ContextPred(predictor_dim = config['hidden_dim_drug'])
+			self.model_drug = DGL_GIN_ContextPred(predictor_dim = config['hidden_dim_drug'], device = config['device'])
 		elif drug_encoding == 'DGL_AttentiveFP':
 			self.model_drug = DGL_AttentiveFP(node_feat_size = 39, 
 											edge_feat_size = 11,  
 											num_layers = config['gnn_num_layers'], 
 											num_timesteps = config['attentivefp_num_timesteps'], 
 											graph_feat_size = config['gnn_hid_dim_drug'], 
-											predictor_dim = config['hidden_dim_drug'])
+											predictor_dim = config['hidden_dim_drug'],
+											device = config['device'])
 		else:
 			raise AttributeError('Please use one of the available encoding method.')
 
 		if target_encoding == 'AAC' or target_encoding == 'PseudoAAC' or  target_encoding == 'Conjoint_triad' or target_encoding == 'Quasi-seq' or target_encoding == 'ESPF':
-			self.model_protein = MLP(config['input_dim_protein'], config['hidden_dim_protein'], config['mlp_hidden_dims_target'])
+			self.model_protein = MLP(config['input_dim_protein'], config['hidden_dim_protein'], config['mlp_hidden_dims_target'], device = config['device'])
 		elif target_encoding == 'CNN':
 			self.model_protein = CNN('protein', **config)
 		elif target_encoding == 'CNN_RNN':
@@ -273,23 +311,27 @@ class DBTA:
 			self.model_protein = transformer('protein', **config)
 		else:
 			raise AttributeError('Please use one of the available encoding method.')
+		
+		if config['general_architecture_version'] == 'mlp':
+			print('Using the MLP version of the architecture...')
+			self.model = MLP_Classifier(self.model_drug, self.model_protein, **config)
+		elif config['general_architecture_version'] == 'dot_product':
+			print('Using the dot product version of the architecture...')
+			self.model = Dot_Product_Classifier(self.model_drug, self.model_protein, **config)
 
-		self.model = Classifier(self.model_drug, self.model_protein, **config)
 		self.config = config
-
-		if 'cuda_id' in self.config:
-			if self.config['cuda_id'] is None:
-				self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-			else:
-				self.device = torch.device('cuda:' + str(self.config['cuda_id']) if torch.cuda.is_available() else 'cpu')
-		else:
-			self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 		
 		self.drug_encoding = drug_encoding
 		self.target_encoding = target_encoding
 		self.result_folder = config['result_folder']
 		if not os.path.exists(self.result_folder):
-			os.mkdir(self.result_folder)            
+			os.mkdir(self.result_folder)
+		
+		# create a custom folder for every experiment inside the resutls directory. This way, you don't have to lose your results every time you run an experiment.
+		if config['experiment_name'] is None:
+			self.experiment_dir = self.result_folder+self.config['general_architecture_version']+'_'+datetime.now().strftime('%d_%m_%Y__%H_%M_%S')
+			os.mkdir(self.experiment_dir)
+
 		self.binary = False
 		if 'num_workers' not in self.config.keys():
 			self.config['num_workers'] = 0
@@ -328,11 +370,11 @@ class DBTA:
 				return y_pred
 			## ROC-AUC curve
 			if test:
-				roc_auc_file = os.path.join(self.result_folder, "roc-auc.jpg")
+				roc_auc_file = os.path.join(self.experiment_dir, "roc-auc.jpg")
 				plt.figure(0)
 				roc_curve(y_pred, y_label, roc_auc_file, self.drug_encoding + '_' + self.target_encoding)
 				plt.figure(1)
-				pr_auc_file = os.path.join(self.result_folder, "pr-auc.jpg")
+				pr_auc_file = os.path.join(self.experiment_dir, "pr-auc.jpg")
 				prauc_curve(y_pred, y_label, pr_auc_file, self.drug_encoding + '_' + self.target_encoding)
 
 			return roc_auc_score(y_label, y_pred), average_precision_score(y_label, y_pred), f1_score(y_label, outputs), log_loss(y_label, outputs), y_pred
@@ -357,7 +399,7 @@ class DBTA:
 		loss_history = []
 
 		self.model = self.model.to(self.device)
-
+		'''
 		# support multiple GPUs
 		if torch.cuda.device_count() > 1:
 			if verbose:
@@ -369,6 +411,8 @@ class DBTA:
 		else:
 			if verbose:
 				print("Let's use CPU/s!")
+		'''
+
 		# Future TODO: support multiple optimizers with parameters
 		opt = torch.optim.Adam(self.model.parameters(), lr = lr, weight_decay = decay)
 		if verbose:
@@ -432,10 +476,8 @@ class DBTA:
 				else:
 					v_d = v_d.float().to(self.device)                
 					#score = self.model(v_d, v_p.float().to(self.device))
-               
 				score = self.model(v_d, v_p)
 				label = Variable(torch.from_numpy(np.array(label)).float()).to(self.device)
-
 				if self.binary:
 					loss_fct = torch.nn.BCELoss()
 					m = torch.nn.Sigmoid()
@@ -500,7 +542,7 @@ class DBTA:
 
 		if val is not None:
 			#### after training 
-			prettytable_file = os.path.join(self.result_folder, "valid_markdowntable.txt")
+			prettytable_file = os.path.join(self.experiment_dir, "valid_markdowntable.txt")
 			with open(prettytable_file, 'w') as fp:
 				fp.write(table.get_string())
 
@@ -522,13 +564,13 @@ class DBTA:
 				if verbose:
 					print('Testing MSE: ' + str(mse) + ' , Pearson Correlation: ' + str(r2) 
 					  + ' with p-value: ' + str(f"{p_val:.2E}") +' , Concordance Index: '+str(CI))
-			np.save(os.path.join(self.result_folder, str(self.drug_encoding) + '_' + str(self.target_encoding) 
+			np.save(os.path.join(self.experiment_dir, str(self.drug_encoding) + '_' + str(self.target_encoding) 
 				     + '_logits.npy'), np.array(logits))                
 	
 			######### learning record ###########
 
 			### 1. test results
-			prettytable_file = os.path.join(self.result_folder, "test_markdowntable.txt")
+			prettytable_file = os.path.join(self.experiment_dir, "test_markdowntable.txt")
 			with open(prettytable_file, 'w') as fp:
 				fp.write(test_table.get_string())
 
@@ -539,11 +581,11 @@ class DBTA:
 		plt.plot(iter_num, loss_history, "bo-")
 		plt.xlabel("iteration", fontsize = fontsize)
 		plt.ylabel("loss value", fontsize = fontsize)
-		pkl_file = os.path.join(self.result_folder, "loss_curve_iter.pkl")
+		pkl_file = os.path.join(self.experiment_dir, "loss_curve_iter.pkl")
 		with open(pkl_file, 'wb') as pck:
 			pickle.dump(loss_history, pck)
 
-		fig_file = os.path.join(self.result_folder, "loss_curve.png")
+		fig_file = os.path.join(self.experiment_dir, "loss_curve.png")
 		plt.savefig(fig_file)
 		if verbose:
 			print('--- Training Finished ---')

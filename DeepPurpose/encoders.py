@@ -24,11 +24,12 @@ import os
 from DeepPurpose.utils import *
 from DeepPurpose.model_helper import Encoder_MultipleLayers, Embeddings    
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 class transformer(nn.Sequential):
 	def __init__(self, encoding, **config):
 		super(transformer, self).__init__()
+		self.config = config
 		if encoding == 'drug':
 			self.emb = Embeddings(config['input_dim_drug'], config['transformer_emb_size_drug'], 50, config['transformer_dropout_rate'])
 			self.encoder = Encoder_MultipleLayers(config['transformer_n_layer_drug'], 
@@ -48,8 +49,8 @@ class transformer(nn.Sequential):
 
 	### parameter v (tuple of length 2) is from utils.drug2emb_encoder 
 	def forward(self, v):
-		e = v[0].long().to(device)
-		e_mask = v[1].long().to(device)
+		e = v[0].long().to(self.config['device'])
+		e_mask = v[1].long().to(self.config['device'])
 		ex_e_mask = e_mask.unsqueeze(1).unsqueeze(2)
 		ex_e_mask = (1.0 - ex_e_mask) * -10000.0
 
@@ -191,24 +192,24 @@ class CNN_RNN(nn.Sequential):
 		if self.encoding == 'protein':
 			if self.config['rnn_Use_GRU_LSTM_target'] == 'LSTM':
 				direction = 2 if self.config['rnn_target_bidirectional'] else 1
-				h0 = torch.randn(self.config['rnn_target_n_layers'] * direction, batch_size, self.config['rnn_target_hid_dim']).to(device)
-				c0 = torch.randn(self.config['rnn_target_n_layers'] * direction, batch_size, self.config['rnn_target_hid_dim']).to(device)
+				h0 = torch.randn(self.config['rnn_target_n_layers'] * direction, batch_size, self.config['rnn_target_hid_dim']).to(self.config['device'])
+				c0 = torch.randn(self.config['rnn_target_n_layers'] * direction, batch_size, self.config['rnn_target_hid_dim']).to(self.config['device'])
 				v, (hn, cn) = self.rnn(v.double(), (h0.double(), c0.double()))
 			else:
 				# GRU
 				direction = 2 if self.config['rnn_target_bidirectional'] else 1
-				h0 = torch.randn(self.config['rnn_target_n_layers'] * direction, batch_size, self.config['rnn_target_hid_dim']).to(device)
+				h0 = torch.randn(self.config['rnn_target_n_layers'] * direction, batch_size, self.config['rnn_target_hid_dim']).to(self.config['device'])
 				v, hn = self.rnn(v.double(), h0.double())
 		else:
 			if self.config['rnn_Use_GRU_LSTM_drug'] == 'LSTM':
 				direction = 2 if self.config['rnn_drug_bidirectional'] else 1
-				h0 = torch.randn(self.config['rnn_drug_n_layers'] * direction, batch_size, self.config['rnn_drug_hid_dim']).to(device)
-				c0 = torch.randn(self.config['rnn_drug_n_layers'] * direction, batch_size, self.config['rnn_drug_hid_dim']).to(device)
+				h0 = torch.randn(self.config['rnn_drug_n_layers'] * direction, batch_size, self.config['rnn_drug_hid_dim']).to(self.config['device'])
+				c0 = torch.randn(self.config['rnn_drug_n_layers'] * direction, batch_size, self.config['rnn_drug_hid_dim']).to(self.config['device'])
 				v, (hn, cn) = self.rnn(v.double(), (h0.double(), c0.double()))
 			else:
 				# GRU
 				direction = 2 if self.config['rnn_drug_bidirectional'] else 1
-				h0 = torch.randn(self.config['rnn_drug_n_layers'] * direction, batch_size, self.config['rnn_drug_hid_dim']).to(device)
+				h0 = torch.randn(self.config['rnn_drug_n_layers'] * direction, batch_size, self.config['rnn_drug_hid_dim']).to(self.config['device'])
 				v, hn = self.rnn(v.double(), h0.double())
 		v = torch.flatten(v, 1)
 		v = self.fc1(v.float())
@@ -216,7 +217,7 @@ class CNN_RNN(nn.Sequential):
 
 
 class MLP(nn.Sequential):
-	def __init__(self, input_dim, output_dim, hidden_dims_lst):
+	def __init__(self, input_dim, output_dim, hidden_dims_lst, device):
 		'''
 			input_dim (int)
 			output_dim (int)
@@ -224,6 +225,7 @@ class MLP(nn.Sequential):
 
 		'''
 		super(MLP, self).__init__()
+		self.device = device
 		layer_size = len(hidden_dims_lst) + 1
 		dims = [input_dim] + hidden_dims_lst + [output_dim]
 
@@ -231,15 +233,16 @@ class MLP(nn.Sequential):
 
 	def forward(self, v):
 		# predict
-		v = v.float().to(device)
+		v = v.float().to(self.device)
 		for i, l in enumerate(self.predictor):
 			v = F.relu(l(v))
 		return v  
 
 class MPNN(nn.Sequential):
 
-	def __init__(self, mpnn_hidden_size, mpnn_depth):
+	def __init__(self, mpnn_hidden_size, mpnn_depth, device):
 		super(MPNN, self).__init__()
+		self.device = device
 		self.mpnn_hidden_size = mpnn_hidden_size
 		self.mpnn_depth = mpnn_depth 
 		from DeepPurpose.chemutils import ATOM_FDIM, BOND_FDIM
@@ -287,10 +290,10 @@ class MPNN(nn.Sequential):
 		agraph = agraph.long()
 		bgraph = bgraph.long()	
 
-		fatoms = create_var(fatoms).to(device)
-		fbonds = create_var(fbonds).to(device)
-		agraph = create_var(agraph).to(device)
-		bgraph = create_var(bgraph).to(device)
+		fatoms = create_var(fatoms).to(self.device)
+		fbonds = create_var(fbonds).to(self.device)
+		agraph = create_var(agraph).to(self.device)
+		bgraph = create_var(bgraph).to(self.device)
 
 		binput = self.W_i(fbonds) #### (y, d1)
 		message = F.relu(binput)  #### (y, d1)		
@@ -312,11 +315,11 @@ class MPNN(nn.Sequential):
 
 class DGL_GCN(nn.Module):
 	## adapted from https://github.com/awslabs/dgl-lifesci/blob/2fbf5fd6aca92675b709b6f1c3bc3c6ad5434e96/python/dgllife/model/model_zoo/gcn_predictor.py#L16
-	def __init__(self, in_feats, hidden_feats=None, activation=None, predictor_dim=None):
+	def __init__(self, in_feats, hidden_feats=None, activation=None, predictor_dim=None, device='cpu'):
 		super(DGL_GCN, self).__init__()
 		from dgllife.model.gnn.gcn import GCN
 		from dgllife.model.readout.weighted_sum_and_max import WeightedSumAndMax
-
+		self.device = device
 		self.gnn = GCN(in_feats=in_feats,
 						hidden_feats=hidden_feats,
 						activation=activation
@@ -326,7 +329,7 @@ class DGL_GCN(nn.Module):
 		self.transform = nn.Linear(self.gnn.hidden_feats[-1] * 2, predictor_dim)
 
 	def forward(self, bg):
-		bg = bg.to(device)
+		bg = bg.to(self.device)
 		feats = bg.ndata.pop('h') 
 		node_feats = self.gnn(bg, feats)
 		graph_feats = self.readout(bg, node_feats)
@@ -334,11 +337,11 @@ class DGL_GCN(nn.Module):
 
 class DGL_NeuralFP(nn.Module):
 	## adapted from https://github.com/awslabs/dgl-lifesci/blob/2fbf5fd6aca92675b709b6f1c3bc3c6ad5434e96/python/dgllife/model/model_zoo/gat_predictor.py
-	def __init__(self, in_feats, hidden_feats=None, max_degree = None, activation=None, predictor_hidden_size = None, predictor_activation = None, predictor_dim=None):
+	def __init__(self, in_feats, hidden_feats=None, max_degree = None, activation=None, predictor_hidden_size = None, predictor_activation = None, predictor_dim=None, device='cpu'):
 		super(DGL_NeuralFP, self).__init__()
 		from dgllife.model.gnn.nf import NFGNN
 		from dgllife.model.readout.sum_and_max import SumAndMax
-
+		self.device = device
 		self.gnn = NFGNN(in_feats=in_feats,
 						hidden_feats=hidden_feats,
 						max_degree=max_degree,
@@ -352,7 +355,7 @@ class DGL_NeuralFP(nn.Module):
 		self.transform = nn.Linear(predictor_hidden_size * 2, predictor_dim)
 
 	def forward(self, bg):
-		bg = bg.to(device)        
+		bg = bg.to(self.device)        
 		feats = bg.ndata.pop('h') 
 		node_feats = self.gnn(bg, feats)
 		node_feats = self.node_to_graph(node_feats)
@@ -363,11 +366,11 @@ class DGL_NeuralFP(nn.Module):
 
 class DGL_GIN_AttrMasking(nn.Module):
 	## adapted from https://github.com/awslabs/dgl-lifesci/blob/2fbf5fd6aca92675b709b6f1c3bc3c6ad5434e96/examples/property_prediction/moleculenet/utils.py#L76
-	def __init__(self, predictor_dim=None):
+	def __init__(self, predictor_dim=None, device='cpu'):
 		super(DGL_GIN_AttrMasking, self).__init__()
 		from dgllife.model import load_pretrained
 		from dgl.nn.pytorch.glob import AvgPooling
-
+		self.device = device
 		## this is fixed hyperparameters as it is a pretrained model
 		self.gnn = load_pretrained('gin_supervised_masking')
 
@@ -375,7 +378,7 @@ class DGL_GIN_AttrMasking(nn.Module):
 		self.transform = nn.Linear(300, predictor_dim)
 
 	def forward(self, bg):
-		bg = bg.to(device)                
+		bg = bg.to(self.device)                
 		node_feats = [
 			bg.ndata.pop('atomic_number'),
 			bg.ndata.pop('chirality_type')
@@ -391,11 +394,11 @@ class DGL_GIN_AttrMasking(nn.Module):
 
 class DGL_GIN_ContextPred(nn.Module):
 	## adapted from https://github.com/awslabs/dgl-lifesci/blob/2fbf5fd6aca92675b709b6f1c3bc3c6ad5434e96/examples/property_prediction/moleculenet/utils.py#L76
-	def __init__(self, predictor_dim=None):
+	def __init__(self, predictor_dim=None, device='cpu'):
 		super(DGL_GIN_ContextPred, self).__init__()
 		from dgllife.model import load_pretrained
 		from dgl.nn.pytorch.glob import AvgPooling
-
+		self.device = device
 		## this is fixed hyperparameters as it is a pretrained model
 		self.gnn = load_pretrained('gin_supervised_contextpred')
 
@@ -403,7 +406,7 @@ class DGL_GIN_ContextPred(nn.Module):
 		self.transform = nn.Linear(300, predictor_dim)
 
 	def forward(self, bg):
-		bg = bg.to(device)                
+		bg = bg.to(self.device)                
 		node_feats = [
 			bg.ndata.pop('atomic_number'),
 			bg.ndata.pop('chirality_type')
@@ -420,11 +423,11 @@ class DGL_GIN_ContextPred(nn.Module):
 
 class DGL_AttentiveFP(nn.Module):
 	## adapted from https://github.com/awslabs/dgl-lifesci/blob/2fbf5fd6aca92675b709b6f1c3bc3c6ad5434e96/python/dgllife/model/model_zoo/attentivefp_predictor.py#L17
-	def __init__(self, node_feat_size, edge_feat_size, num_layers = 2, num_timesteps = 2, graph_feat_size = 200, predictor_dim=None):
+	def __init__(self, node_feat_size, edge_feat_size, num_layers = 2, num_timesteps = 2, graph_feat_size = 200, predictor_dim=None, device='cpu'):
 		super(DGL_AttentiveFP, self).__init__()
 		from dgllife.model.gnn import AttentiveFPGNN
 		from dgllife.model.readout import AttentiveFPReadout
-
+		self.device = device
 		self.gnn = AttentiveFPGNN(node_feat_size=node_feat_size,
                                   edge_feat_size=edge_feat_size,
                                   num_layers=num_layers,
@@ -436,7 +439,7 @@ class DGL_AttentiveFP(nn.Module):
 		self.transform = nn.Linear(graph_feat_size, predictor_dim)
 
 	def forward(self, bg):
-		bg = bg.to(device)                
+		bg = bg.to(self.device)                
 		node_feats = bg.ndata.pop('h')
 		edge_feats = bg.edata.pop('e')
 
