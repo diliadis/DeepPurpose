@@ -856,7 +856,9 @@ def generate_config(drug_encoding = None, target_encoding = None,
 					neuralfp_max_degree = 10,
 					neuralfp_predictor_hid_dim = 128,
 					neuralfp_predictor_activation = torch.tanh,
-					attentivefp_num_timesteps = 2
+					attentivefp_num_timesteps = 2,
+					general_architecture_version = 'mlp',
+					experiment_name = None,
 					):
 
 	base_config = {'input_dim_drug': input_dim_drug,
@@ -873,7 +875,9 @@ def generate_config(drug_encoding = None, target_encoding = None,
 					'result_folder': result_folder,
 					'binary': False,
 					'num_workers': num_workers,
-					'cuda_id': cuda_id                 
+					'cuda_id': cuda_id,
+					'general_architecture_version': general_architecture_version,    
+					'experiment_name': experiment_name
 	}
 	if not os.path.exists(base_config['result_folder']):
 		os.makedirs(base_config['result_folder'])
