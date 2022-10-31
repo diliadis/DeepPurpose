@@ -27,6 +27,8 @@ from DeepPurpose.model_helper import Encoder_MultipleLayers, Embeddings
 from DeepPurpose.encoders import *
 
 from torch.utils.tensorboard import SummaryWriter
+import wandb
+from DeepPurpose.utils import EarlyStopping
 
 class MLP_Classifier(nn.Sequential):
 	def __init__(self, model_drug, model_protein, **config):
@@ -248,6 +250,8 @@ class DBTA:
 		drug_encoding = config['drug_encoding']
 		target_encoding = config['target_encoding']
 
+		self.wandb_run = None
+
 		if 'cuda_id' in config:
 			if config['cuda_id'] is None:
 				self.device = torch.device('cpu')
@@ -338,6 +342,15 @@ class DBTA:
 		if 'decay' not in self.config.keys():
 			self.config['decay'] = 0
 
+		
+		self.early_stopping = EarlyStopping(
+			use_early_stopping=self.config['use_early_stopping'],
+			patience=self.config['patience'],
+			delta=self.config['delta'],
+			verbose=True,
+			metric_to_track=self.config['metric_to_optimize_early_stopping'] if self.config['use_early_stopping'] else self.config['metric_to_optimize_best_epoch_selection']
+		)
+
 	def test_(self, data_generator, model, repurposing_mode = False, test = False):
 		y_pred = []
 		y_label = []
@@ -413,6 +426,13 @@ class DBTA:
 				print("Let's use CPU/s!")
 		'''
 
+		# wandb logging
+		if self.config['wandb_project_name'] is not None and self.config['wandb_project_entity'] is not None:
+			self.wandb_run = wandb.init(project=self.config['wandb_project_name'], entity=self.config['wandb_project_entity'], reinit=True)
+			self.wandb_run.watch(self.model)
+			self.wandb_run.config.update(self.config)
+
+
 		# Future TODO: support multiple optimizers with parameters
 		opt = torch.optim.Adam(self.model.parameters(), lr = lr, weight_decay = decay)
 		if verbose:
@@ -429,6 +449,7 @@ class DBTA:
 
 		training_generator = data.DataLoader(data_process_loader(train.index.values, train.Label.values, train, **self.config), **params)
 		if val is not None:
+			params['shuffle'] = True
 			validation_generator = data.DataLoader(data_process_loader(val.index.values, val.Label.values, val, **self.config), **params)
 		
 		if test is not None:
@@ -451,7 +472,7 @@ class DBTA:
 		else:
 			max_MSE = 10000
 		model_max = copy.deepcopy(self.model)
-
+		best_val_metrics_dict = None
 		valid_metric_record = []
 		valid_metric_header = ["# epoch"] 
 		if self.binary:
@@ -502,7 +523,10 @@ class DBTA:
 							' with loss ' + str(loss.cpu().detach().numpy())[:7] +\
 							". Total time " + str(int(t_now - t_start)/3600)[:7] + " hours") 
 						### record total run time
-						
+				if self.wandb_run is not None: self.wandb_run.log({'train_loss': loss.item(), 'train_batch': iteration_loss}, commit=True)
+
+			# if self.wandb_run is not None:
+			# 	self.wandb_run.log(results_to_log, step=epoch)
 			if val is not None:
 				##### validate, select the best model up to now 
 				with torch.set_grad_enabled(False):
@@ -513,11 +537,13 @@ class DBTA:
 						valid_metric_record.append(lst)
 						if auc > max_auc:
 							model_max = copy.deepcopy(self.model)
-							max_auc = auc   
+							max_auc = auc
+							best_val_metrics_dict = {'val_AUC': auc, 'val_AUPR': aupr, 'val_f1': f1, 'val_loss': loss}  
 						if verbose:
 							print('Validation at Epoch '+ str(epo + 1) + ', AUROC: ' + str(auc)[:7] + \
 							  ' , AUPRC: ' + str(auprc)[:7] + ' , F1: '+str(f1)[:7] + ' , Cross-entropy Loss: ' + \
 							  str(loss)[:7])
+
 					else:  
 						### regression: MSE, Pearson Correlation, with p-value, Concordance Index  
 						mse, r2, p_val, CI, logits, loss_val = self.test_(validation_generator, self.model)
@@ -526,6 +552,7 @@ class DBTA:
 						if mse < max_MSE:
 							model_max = copy.deepcopy(self.model)
 							max_MSE = mse
+							best_val_metrics_dict = {'val_MSE': mse, 'val_pearson_correlation': r2, 'val_concordance_index': CI, 'val_loss': loss_val.item()}
 						if verbose:
 							print('Validation at Epoch '+ str(epo + 1) + ' with loss:' + str(loss_val.item())[:7] +', MSE: ' + str(mse)[:7] + ' , Pearson Correlation: '\
 							 + str(r2)[:7] + ' with p-value: ' + str(f"{p_val:.2E}") +' , Concordance Index: '+str(CI)[:7])
@@ -533,9 +560,23 @@ class DBTA:
 							writer.add_scalar("valid/pearson_correlation", r2, epo)
 							writer.add_scalar("valid/concordance_index", CI, epo)
 							writer.add_scalar("Loss/valid", loss_val.item(), iteration_loss)
+
+						if self.wandb_run is not None:
+							self.wandb_run.log({'val_MSE': mse, 'val_pearson_correlation': r2, 'val_concordance_index': CI, 'epoch': epo})
+							self.wandb_run.log({'val_loss': loss_val.item(), 'batch': iteration_loss})
 				table.add_row(lst)
 			else:
 				model_max = copy.deepcopy(self.model)
+
+			
+			# update early stopping and keep track of best model 
+			self.early_stopping(
+				{'val_AUC': auc, 'val_AUPR': aupr, 'val_f1': f1, 'val_loss': loss} if self.binary else {'val_MSE': mse, 'val_pearson_correlation': r2, 'val_concordance_index': CI, 'val_loss': loss_val.item()},
+				epo
+			)
+			if self.early_stopping.early_stop_flag and self.config['use_early_stopping']:
+				print('Early stopping criterion met. Training stopped!!!')
+				break
 
 		# load early stopped model
 		self.model = model_max
@@ -545,6 +586,9 @@ class DBTA:
 			prettytable_file = os.path.join(self.experiment_dir, "valid_markdowntable.txt")
 			with open(prettytable_file, 'w') as fp:
 				fp.write(table.get_string())
+
+		print('Best params!!! '+str(best_val_metrics_dict))
+		if self.wandb_run is not None: self.wandb_run.log({'best_'+param_k: param_v for param_k, param_v in best_val_metrics_dict.items()})
 
 		if test is not None:
 			if verbose:
@@ -556,7 +600,9 @@ class DBTA:
 				if verbose:
 					print('Validation at Epoch '+ str(epo + 1) + ' , AUROC: ' + str(auc)[:7] + \
 					  ' , AUPRC: ' + str(auprc)[:7] + ' , F1: '+str(f1)[:7] + ' , Cross-entropy Loss: ' + \
-					  str(loss)[:7])				
+					  str(loss)[:7])	
+				if self.wandb_run is not None:
+					self.wandb_run.log({'train_AUC': auc, 'train_AUPR': aupr, 'train_f1': f1, 'train_loss': loss})			
 			else:
 				mse, r2, p_val, CI, logits, loss_test = self.test_(testing_generator, model_max)
 				test_table = PrettyTable(["MSE", "Pearson Correlation", "with p-value", "Concordance Index"])
@@ -564,6 +610,8 @@ class DBTA:
 				if verbose:
 					print('Testing MSE: ' + str(mse) + ' , Pearson Correlation: ' + str(r2) 
 					  + ' with p-value: ' + str(f"{p_val:.2E}") +' , Concordance Index: '+str(CI))
+				if self.wandb_run is not None: self.wandb_run.log({'test_MSE': mse, 'test_pearson_correlation': r2, 'test_concordance_index': CI})
+				
 			np.save(os.path.join(self.experiment_dir, str(self.drug_encoding) + '_' + str(self.target_encoding) 
 				     + '_logits.npy'), np.array(logits))                
 	
@@ -575,22 +623,25 @@ class DBTA:
 				fp.write(test_table.get_string())
 
 		### 2. learning curve 
-		fontsize = 16
-		iter_num = list(range(1,len(loss_history)+1))
-		plt.figure(3)
-		plt.plot(iter_num, loss_history, "bo-")
-		plt.xlabel("iteration", fontsize = fontsize)
-		plt.ylabel("loss value", fontsize = fontsize)
-		pkl_file = os.path.join(self.experiment_dir, "loss_curve_iter.pkl")
-		with open(pkl_file, 'wb') as pck:
-			pickle.dump(loss_history, pck)
+		# fontsize = 16
+		# iter_num = list(range(1,len(loss_history)+1))
+		# plt.figure(3)
+		# plt.plot(iter_num, loss_history, "bo-")
+		# plt.xlabel("iteration", fontsize = fontsize)
+		# plt.ylabel("loss value", fontsize = fontsize)
+		# pkl_file = os.path.join(self.experiment_dir, "loss_curve_iter.pkl")
+		# with open(pkl_file, 'wb') as pck:
+		# 	pickle.dump(loss_history, pck)
 
-		fig_file = os.path.join(self.experiment_dir, "loss_curve.png")
-		plt.savefig(fig_file)
+		# fig_file = os.path.join(self.experiment_dir, "loss_curve.png")
+		# plt.savefig(fig_file)
 		if verbose:
 			print('--- Training Finished ---')
 			writer.flush()
 			writer.close()
+
+		if self.wandb_run is not None:
+			self.wandb_run.finish()
           
 
 	def predict(self, df_data):
