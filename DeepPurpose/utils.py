@@ -51,10 +51,10 @@ words2idx_p = dict(zip(idx2word_p, range(0, len(idx2word_p))))
 from DeepPurpose.chemutils import get_mol, atom_features, bond_features, MAX_NB
 
 def create_var(tensor, requires_grad=None):
-    if requires_grad is None:
-        return Variable(tensor)
-    else:
-        return Variable(tensor, requires_grad=requires_grad)
+	if requires_grad is None:
+		return Variable(tensor)
+	else:
+		return Variable(tensor, requires_grad=requires_grad)
 
 def roc_curve(y_pred, y_label, figure_file, method_name):
 	'''
@@ -74,7 +74,7 @@ def roc_curve(y_pred, y_label, figure_file, method_name):
 	roc_auc[0] = auc(fpr[0], tpr[0])
 	lw = 2
 	plt.plot(fpr[0], tpr[0],
-         lw=lw, label= method_name + ' (area = %0.2f)' % roc_auc[0])
+		 lw=lw, label= method_name + ' (area = %0.2f)' % roc_auc[0])
 	plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
 	plt.xlim([0.0, 1.0])
 	plt.ylim([0.0, 1.05])
@@ -115,42 +115,42 @@ def length_func(list_or_tensor):
 	return list_or_tensor.shape[0]
 
 def index_select_ND(source, dim, index):
-    index_size = index.size()
-    suffix_dim = source.size()[1:]
-    final_size = index_size + suffix_dim
-    target = source.index_select(dim, index.view(-1))
-    return target.view(final_size)
+	index_size = index.size()
+	suffix_dim = source.size()[1:]
+	final_size = index_size + suffix_dim
+	target = source.index_select(dim, index.view(-1))
+	return target.view(final_size)
 
 def smiles2erg(s):
-    try:
-        mol = Chem.MolFromSmiles(s)
-        features = np.array(GetErGFingerprint(mol))
-    except:
-        print('rdkit cannot find this SMILES for ErG: ' + s + 'convert to all 0 features')
-        features = np.zeros((315, ))
-    return features
+	try:
+		mol = Chem.MolFromSmiles(s)
+		features = np.array(GetErGFingerprint(mol))
+	except:
+		print('rdkit cannot find this SMILES for ErG: ' + s + 'convert to all 0 features')
+		features = np.zeros((315, ))
+	return features
 
 def smiles2morgan(s, radius = 2, nBits = 1024):
-    try:
-        mol = Chem.MolFromSmiles(s)
-        features_vec = AllChem.GetMorganFingerprintAsBitVect(mol, radius, nBits=nBits)
-        features = np.zeros((1,))
-        DataStructs.ConvertToNumpyArray(features_vec, features)
-    except:
-        print('rdkit not found this smiles for morgan: ' + s + ' convert to all 0 features')
-        features = np.zeros((nBits, ))
-    return features
+	try:
+		mol = Chem.MolFromSmiles(s)
+		features_vec = AllChem.GetMorganFingerprintAsBitVect(mol, radius, nBits=nBits)
+		features = np.zeros((1,))
+		DataStructs.ConvertToNumpyArray(features_vec, features)
+	except:
+		print('rdkit not found this smiles for morgan: ' + s + ' convert to all 0 features')
+		features = np.zeros((nBits, ))
+	return features
 
 def smiles2rdkit2d(s):    
-    try:
-        generator = rdNormalizedDescriptors.RDKit2DNormalized()
-        features = np.array(generator.process(s)[1:])
-        NaNs = np.isnan(features)
-        features[NaNs] = 0
-    except:
-        print('descriptastorus not found this smiles: ' + s + ' convert to all 0 features')
-        features = np.zeros((200, ))
-    return np.array(features)
+	try:
+		generator = rdNormalizedDescriptors.RDKit2DNormalized()
+		features = np.array(generator.process(s)[1:])
+		NaNs = np.isnan(features)
+		features[NaNs] = 0
+	except:
+		print('descriptastorus not found this smiles: ' + s + ' convert to all 0 features')
+		features = np.zeros((200, ))
+	return np.array(features)
 
 def smiles2daylight(s):
 	try:
@@ -177,8 +177,8 @@ def smiles2pubchem(s):
 def smiles2dgl_canonical(s, node_featurizer, edge_featurizer):
 	try:
 		g = smiles_to_bigraph(smiles=s, 
-                  node_featurizer=node_featurizer,
-                  edge_featurizer=edge_featurizer)
+				  node_featurizer=node_featurizer,
+				  edge_featurizer=edge_featurizer)
 	except:
 		print('dgl canonical fingerprint not working for smiles: ' + s + ' removed...')
 		g = 'REMOVED'
@@ -308,47 +308,47 @@ def smiles2mpnnfeature(smiles):
 
 # random_fold
 def create_fold(df, fold_seed, frac):
-    train_frac, val_frac, test_frac = frac
-    test = df.sample(frac = test_frac, replace = False, random_state = fold_seed)
-    train_val = df[~df.index.isin(test.index)]
-    val = train_val.sample(frac = val_frac/(1-test_frac), replace = False, random_state = 1)
-    train = train_val[~train_val.index.isin(val.index)]
-    
-    return train, val, test
+	train_frac, val_frac, test_frac = frac
+	test = df.sample(frac = test_frac, replace = False, random_state = fold_seed)
+	train_val = df[~df.index.isin(test.index)]
+	val = train_val.sample(frac = val_frac/(1-test_frac), replace = False, random_state = 1)
+	train = train_val[~train_val.index.isin(val.index)]
+	
+	return train, val, test
 
 # cold protein
 def create_fold_setting_cold_protein(df, fold_seed, frac):
-    train_frac, val_frac, test_frac = frac
-    gene_drop = df['Target Sequence'].drop_duplicates().sample(frac = test_frac, replace = False, random_state = fold_seed).values
-    
-    test = df[df['Target Sequence'].isin(gene_drop)]
+	train_frac, val_frac, test_frac = frac
+	gene_drop = df['Target Sequence'].drop_duplicates().sample(frac = test_frac, replace = False, random_state = fold_seed).values
+	
+	test = df[df['Target Sequence'].isin(gene_drop)]
 
-    train_val = df[~df['Target Sequence'].isin(gene_drop)]
-    
-    gene_drop_val = train_val['Target Sequence'].drop_duplicates().sample(frac = val_frac/(1-test_frac), 
-    																	  replace = False, 
-    																	  random_state = fold_seed).values
-    val = train_val[train_val['Target Sequence'].isin(gene_drop_val)]
-    train = train_val[~train_val['Target Sequence'].isin(gene_drop_val)]
-    
-    return train, val, test
+	train_val = df[~df['Target Sequence'].isin(gene_drop)]
+	
+	gene_drop_val = train_val['Target Sequence'].drop_duplicates().sample(frac = val_frac/(1-test_frac), 
+																		  replace = False, 
+																		  random_state = fold_seed).values
+	val = train_val[train_val['Target Sequence'].isin(gene_drop_val)]
+	train = train_val[~train_val['Target Sequence'].isin(gene_drop_val)]
+	
+	return train, val, test
 
 # cold drug
 def create_fold_setting_cold_drug(df, fold_seed, frac):
-    train_frac, val_frac, test_frac = frac
-    drug_drop = df['SMILES'].drop_duplicates().sample(frac = test_frac, replace = False, random_state = fold_seed).values
-    
-    test = df[df['SMILES'].isin(drug_drop)]
+	train_frac, val_frac, test_frac = frac
+	drug_drop = df['SMILES'].drop_duplicates().sample(frac = test_frac, replace = False, random_state = fold_seed).values
+	
+	test = df[df['SMILES'].isin(drug_drop)]
 
-    train_val = df[~df['SMILES'].isin(drug_drop)]
-    
-    drug_drop_val = train_val['SMILES'].drop_duplicates().sample(frac = val_frac/(1-test_frac), 
-    															 replace = False, 
-    															 random_state = fold_seed).values
-    val = train_val[train_val['SMILES'].isin(drug_drop_val)]
-    train = train_val[~train_val['SMILES'].isin(drug_drop_val)]
-    
-    return train, val, test
+	train_val = df[~df['SMILES'].isin(drug_drop)]
+	
+	drug_drop_val = train_val['SMILES'].drop_duplicates().sample(frac = val_frac/(1-test_frac), 
+																 replace = False, 
+																 random_state = fold_seed).values
+	val = train_val[train_val['SMILES'].isin(drug_drop_val)]
+	train = train_val[~train_val['SMILES'].isin(drug_drop_val)]
+	
+	return train, val, test
 
 
 def encode_drug(df_data, drug_encoding, column_name = 'SMILES', save_column_name = 'drug_encoding'):
@@ -859,6 +859,13 @@ def generate_config(drug_encoding = None, target_encoding = None,
 					attentivefp_num_timesteps = 2,
 					general_architecture_version = 'mlp',
 					experiment_name = None,
+					wandb_project_name = None,
+					wandb_project_entity = None,
+					use_early_stopping = False,
+					patience = 5,
+					delta = 0,
+					metric_to_optimize_early_stopping = 'loss',
+					metric_to_optimize_best_epoch_selection = 'loss',
 					):
 
 	base_config = {'input_dim_drug': input_dim_drug,
@@ -877,7 +884,15 @@ def generate_config(drug_encoding = None, target_encoding = None,
 					'num_workers': num_workers,
 					'cuda_id': cuda_id,
 					'general_architecture_version': general_architecture_version,    
-					'experiment_name': experiment_name
+					'experiment_name': experiment_name,
+					'wandb_project_name': wandb_project_name,
+					'wandb_project_entity': wandb_project_entity,
+					'use_early_stopping': use_early_stopping,
+					'patience': patience,
+					'delta': delta,
+					'metric_to_optimize_early_stopping': metric_to_optimize_early_stopping,
+					'metric_to_optimize_best_epoch_selection': metric_to_optimize_best_epoch_selection,
+
 	}
 	if not os.path.exists(base_config['result_folder']):
 		os.makedirs(base_config['result_folder'])
@@ -1010,83 +1025,83 @@ def convert_y_unit(y, from_, to_):
 		y = -np.log10(y*1e-9)
 	elif to_ == 'nM':
 		y = y
-        
+		
 	if array_flag:
 		return y[0]
 	return y
 
 def protein2emb_encoder(x):
-    max_p = 545
-    t1 = pbpe.process_line(x).split()  # split
-    try:
-        i1 = np.asarray([words2idx_p[i] for i in t1])  # index
-    except:
-        i1 = np.array([0])
+	max_p = 545
+	t1 = pbpe.process_line(x).split()  # split
+	try:
+		i1 = np.asarray([words2idx_p[i] for i in t1])  # index
+	except:
+		i1 = np.array([0])
 
-    l = len(i1)
+	l = len(i1)
    
-    if l < max_p:
-        i = np.pad(i1, (0, max_p - l), 'constant', constant_values = 0)
-        input_mask = ([1] * l) + ([0] * (max_p - l))
-    else:
-        i = i1[:max_p]
-        input_mask = [1] * max_p
-        
-    return i, np.asarray(input_mask)
+	if l < max_p:
+		i = np.pad(i1, (0, max_p - l), 'constant', constant_values = 0)
+		input_mask = ([1] * l) + ([0] * (max_p - l))
+	else:
+		i = i1[:max_p]
+		input_mask = [1] * max_p
+		
+	return i, np.asarray(input_mask)
 
 def drug2emb_encoder(x):
 
-    max_d = 50
-    t1 = dbpe.process_line(x).split()  # split
-    try:
-        i1 = np.asarray([words2idx_d[i] for i in t1])  # index
-    except:
-        i1 = np.array([0])
-    
-    l = len(i1)
+	max_d = 50
+	t1 = dbpe.process_line(x).split()  # split
+	try:
+		i1 = np.asarray([words2idx_d[i] for i in t1])  # index
+	except:
+		i1 = np.array([0])
+	
+	l = len(i1)
 
-    if l < max_d:
-        i = np.pad(i1, (0, max_d - l), 'constant', constant_values = 0)
-        input_mask = ([1] * l) + ([0] * (max_d - l))
+	if l < max_d:
+		i = np.pad(i1, (0, max_d - l), 'constant', constant_values = 0)
+		input_mask = ([1] * l) + ([0] * (max_d - l))
 
-    else:
-        i = i1[:max_d]
-        input_mask = [1] * max_d
+	else:
+		i = i1[:max_d]
+		input_mask = [1] * max_d
 
-    return i, np.asarray(input_mask)
-    '''
+	return i, np.asarray(input_mask)
+	'''
 		the returned tuple is fed into models.transformer.forward() 
-    '''
+	'''
 
 def drug2espf(x):
-    t1 = dbpe.process_line(x).split()  # split
-    try:
-        i1 = np.asarray([words2idx_d[i] for i in t1])  # index
-    except:
-        i1 = np.array([0])
-    v1 = np.zeros(len(idx2word_d),)
-    v1[i1] = 1
-    return v1	
+	t1 = dbpe.process_line(x).split()  # split
+	try:
+		i1 = np.asarray([words2idx_d[i] for i in t1])  # index
+	except:
+		i1 = np.array([0])
+	v1 = np.zeros(len(idx2word_d),)
+	v1[i1] = 1
+	return v1	
 
 def protein2espf(x):
-    t1 = pbpe.process_line(x).split()  # split
-    try:
-        i1 = np.asarray([words2idx_p[i] for i in t1])  # index
-    except:
-        i1 = np.array([0])
-    v1 = np.zeros(len(idx2word_p),)
-    v1[i1] = 1
-    return v1
+	t1 = pbpe.process_line(x).split()  # split
+	try:
+		i1 = np.asarray([words2idx_p[i] for i in t1])  # index
+	except:
+		i1 = np.array([0])
+	v1 = np.zeros(len(idx2word_p),)
+	v1[i1] = 1
+	return v1
 
 # '?' padding
 amino_char = ['?', 'A', 'C', 'B', 'E', 'D', 'G', 'F', 'I', 'H', 'K', 'M', 'L', 'O',
-       'N', 'Q', 'P', 'S', 'R', 'U', 'T', 'W', 'V', 'Y', 'X', 'Z']
+	   'N', 'Q', 'P', 'S', 'R', 'U', 'T', 'W', 'V', 'Y', 'X', 'Z']
 
 smiles_char = ['?', '#', '%', ')', '(', '+', '-', '.', '1', '0', '3', '2', '5', '4',
-       '7', '6', '9', '8', '=', 'A', 'C', 'B', 'E', 'D', 'G', 'F', 'I',
-       'H', 'K', 'M', 'L', 'O', 'N', 'P', 'S', 'R', 'U', 'T', 'W', 'V',
-       'Y', '[', 'Z', ']', '_', 'a', 'c', 'b', 'e', 'd', 'g', 'f', 'i',
-       'h', 'm', 'l', 'o', 'n', 's', 'r', 'u', 't', 'y']
+	   '7', '6', '9', '8', '=', 'A', 'C', 'B', 'E', 'D', 'G', 'F', 'I',
+	   'H', 'K', 'M', 'L', 'O', 'N', 'P', 'S', 'R', 'U', 'T', 'W', 'V',
+	   'Y', '[', 'Z', ']', '_', 'a', 'c', 'b', 'e', 'd', 'g', 'f', 'i',
+	   'h', 'm', 'l', 'o', 'n', 's', 'r', 'u', 't', 'y']
 
 from sklearn.preprocessing import OneHotEncoder
 enc_protein = OneHotEncoder().fit(np.array(amino_char).reshape(-1, 1))
@@ -1416,7 +1431,7 @@ def download_unzip(name, path, file_name):
 
 		print('Extract zip file...', flush = True, file = sys.stderr)
 		with ZipFile(saved_path, 'r') as zip: 
-		    zip.extractall(path = path) 
+			zip.extractall(path = path) 
 
 def download_pretrained_model(model_name, save_dir = './save_folder'):
 	
@@ -1450,10 +1465,10 @@ def download_pretrained_model(model_name, save_dir = './save_folder'):
 import requests 
 
 def download_url(url, save_path, chunk_size=128):
-    r = requests.get(url, stream=True)
-    with open(save_path, 'wb') as fd:
-        for chunk in r.iter_content(chunk_size=chunk_size):
-            fd.write(chunk)
+	r = requests.get(url, stream=True)
+	with open(save_path, 'wb') as fd:
+		for chunk in r.iter_content(chunk_size=chunk_size):
+			fd.write(chunk)
 
 def download_pretrained_model_S3(model_name, save_dir = './save_folder'):
 	print('Beginning Downloading' + model_name + ' Model...')
@@ -1475,3 +1490,83 @@ def download_pretrained_model_S3(model_name, save_dir = './save_folder'):
 	
 	pretrained_dir = os.path.join(pretrained_dir, model_name)
 	return pretrained_dir
+
+class EarlyStopping:
+	'''Early stops the training if validation loss doesn't improve after a given patience.'''
+
+	def __init__(self, use_early_stopping, patience=7, delta=0.0, metric_to_track='loss', verbose=False):
+		'''
+		Args:
+			patience (int): How long to wait after last time validation loss improved.
+							Default: 7
+			verbose (bool): If True, prints a message for each validation loss improvement.
+							Default: False
+			delta (float): Minimum change in the monitored quantity to qualify as an improvement.
+							Default: 0
+		'''
+		self.use_early_stopping = use_early_stopping
+		self.patience = patience
+		self.delta = delta
+		self.metric_to_track = metric_to_track
+		self.verbose = verbose
+
+		self.early_stop_flag = False
+		self.counter = 0
+
+		self.best_score = None
+		self.best_epoch = None
+		self.best_performance_results = None
+
+		if True in [
+			m in self.metric_to_track.lower()
+			for m in [
+				'auroc',
+				'aupr',
+				'recall',
+				'f1_score',
+				'precision',
+				'accuracy',
+				'R2',
+			]
+		]:
+			print('Early stopping detected metric: '+str(self.metric_to_track))
+			self.fac = 1
+		elif True in [
+			m in self.metric_to_track.lower()
+			for m in ['hamming_loss', 'RMSE', 'MSE', 'MAE', 'RRMSE', 'loss']
+		]:
+			print('Early stopping detected metric: '+str(self.metric_to_track))
+			self.fac = -1
+		else:
+			AttributeError(
+				'Invalid metric name used for early stopping: '
+				+ str(self.metric_to_track)
+			)
+
+
+	def __call__(
+		self,
+		performance_results,
+		epoch,
+	):
+
+		score = performance_results['val_' + self.metric_to_track] * self.fac
+		if self.best_score is None:
+			self.best_score = score
+			self.best_epoch = epoch
+			self.best_performance_results = performance_results
+			# self.save_checkpoint(val_loss, model)
+
+		elif (score <= self.best_score + self.delta) and self.use_early_stopping:
+			self.counter += 1
+			if self.verbose:
+				print(
+					f'-----------------------------EarlyStopping counter: {self.counter} out of {self.patience}---------------------- best epoch currently {self.best_epoch}'
+				)
+			if self.counter >= self.patience:
+				self.early_stop_flag = True
+		else:
+			self.best_score = score
+			self.best_epoch = epoch
+			self.best_performance_results = performance_results
+			self.counter = 0
