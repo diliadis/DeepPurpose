@@ -538,7 +538,7 @@ class DBTA:
 						if auc > max_auc:
 							model_max = copy.deepcopy(self.model)
 							max_auc = auc
-							best_val_metrics_dict = {'val_AUC': auc, 'val_AUPR': aupr, 'val_f1': f1, 'val_loss': loss}  
+							best_val_metrics_dict = {'val_AUC': auc, 'val_AUPR': auprc, 'val_f1': f1, 'val_loss': loss}  
 						if verbose:
 							print('Validation at Epoch '+ str(epo + 1) + ', AUROC: ' + str(auc)[:7] + \
 							  ' , AUPRC: ' + str(auprc)[:7] + ' , F1: '+str(f1)[:7] + ' , Cross-entropy Loss: ' + \
@@ -571,7 +571,7 @@ class DBTA:
 			
 			# update early stopping and keep track of best model 
 			self.early_stopping(
-				{'val_AUC': auc, 'val_AUPR': aupr, 'val_f1': f1, 'val_loss': loss} if self.binary else {'val_MSE': mse, 'val_pearson_correlation': r2, 'val_concordance_index': CI, 'val_loss': loss_val.item()},
+				{'val_AUC': auc, 'val_AUPR': auprc, 'val_f1': f1, 'val_loss': loss} if self.binary else {'val_MSE': mse, 'val_pearson_correlation': r2, 'val_concordance_index': CI, 'val_loss': loss_val.item()},
 				epo
 			)
 			if self.early_stopping.early_stop_flag and self.config['use_early_stopping']:
@@ -602,7 +602,7 @@ class DBTA:
 					  ' , AUPRC: ' + str(auprc)[:7] + ' , F1: '+str(f1)[:7] + ' , Cross-entropy Loss: ' + \
 					  str(loss)[:7])	
 				if self.wandb_run is not None:
-					self.wandb_run.log({'train_AUC': auc, 'train_AUPR': aupr, 'train_f1': f1, 'train_loss': loss})			
+					self.wandb_run.log({'train_AUC': auc, 'train_AUPR': auprc, 'train_f1': f1, 'train_loss': loss})			
 			else:
 				mse, r2, p_val, CI, logits, loss_test = self.test_(testing_generator, model_max)
 				test_table = PrettyTable(["MSE", "Pearson Correlation", "with p-value", "Concordance Index"])
