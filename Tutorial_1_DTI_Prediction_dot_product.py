@@ -20,7 +20,7 @@ def generate_combinations(ranges_per_param_name_dict, output_file_dir=None):
 
 def main(num_samples):
 
-    wandb_project_name = 'DeepPurpose_simple'
+    wandb_project_name = 'DeepPurpose'
     wandb_project_entity = 'diliadis'
     general_architecture_version = 'dot_product'
     X_drugs, X_targets, y = dataset.load_process_DAVIS(path = './data', binary = False, convert_to_log = True, threshold = 30)
