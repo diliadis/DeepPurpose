@@ -1,0 +1,499 @@
+Beginning Processing...
+Beginning to extract zip file...
+Default set to logspace (nM -> p) for easier regression
+Done!
+Processing the dataset...
+Drug Target Interaction Prediction Mode...
+in total: 30056 drug-target pairs
+encoding drug...
+unique drugs: 68
+encoding protein...
+unique target sequence: 379
+splitting dataset...
+Done.
+Done! 
+Splitting the dataset...
+Done! 
+  0%|          | 0/10 [00:00<?, ?it/s]100%|██████████| 10/10 [00:00<00:00, 51781.53it/s]
+wandb: Currently logged in as: diliadis. Use `wandb login --relogin` to force relogin
+wandb: wandb version 0.13.5 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.13.4
+wandb: Run data is saved locally in /data/dimitriosi_datasets/dot_vs_mlp/auto_encoders/wandb/run-20221115_121642-2og1j5il
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run wobbly-microwave-25
+wandb: ⭐️ View project at https://wandb.ai/diliadis/Protein_autoencoder
+wandb: 🚀 View run at https://wandb.ai/diliadis/Protein_autoencoder/runs/2og1j5il
+testing the following config: {'learning_rate': 0.0001, 'cnn_filters': [4, 8, 32], 'cnn_kernels': [8, 4, 2]}
+Using the following device: cuda:7
+Early stopping detected metric: loss
+Num train batches: 9
+Num validation batches: 2
+Num test batches: 3
+Epoch 0 train_loss: 0.035862785155281046
+      0 val_loss: 0.03516156336578832
+Epoch 1 train_loss: 0.034365313874822695
+      1 val_loss: 0.034088848626489504
+Epoch 2 train_loss: 0.033331205269157525
+      2 val_loss: 0.03285033160192364
+Epoch 3 train_loss: 0.0321912581612431
+      3 val_loss: 0.031296080355525946
+Epoch 4 train_loss: 0.029450121181041518
+      4 val_loss: 0.029582597138384757
+Epoch 5 train_loss: 0.026673455556166483
+      5 val_loss: 0.024958745669806645
+Epoch 6 train_loss: 0.025238247715880947
+      6 val_loss: 0.025481151519359563
+-----------------------------EarlyStopping counter: 1 out of 5---------------------- best epoch currently 5
+Epoch 7 train_loss: 0.02502431620502053
+      7 val_loss: 0.026814325517118376
+-----------------------------EarlyStopping counter: 2 out of 5---------------------- best epoch currently 5
+Epoch 8 train_loss: 0.024959490143852292
+      8 val_loss: 0.026148479870821275
+-----------------------------EarlyStopping counter: 3 out of 5---------------------- best epoch currently 5
+Epoch 9 train_loss: 0.024498052419086473
+      9 val_loss: 0.02348405322133918
+Epoch 10 train_loss: 0.024829134724308297
+      10 val_loss: 0.02318969629838509
+-----------------------------EarlyStopping counter: 1 out of 5---------------------- best epoch currently 9
+Epoch 11 train_loss: 0.024951951144104357
+      11 val_loss: 0.0274652412554759
+-----------------------------EarlyStopping counter: 2 out of 5---------------------- best epoch currently 9
+Epoch 12 train_loss: 0.024621815651009956
+      12 val_loss: 0.02663425187500844
+-----------------------------EarlyStopping counter: 3 out of 5---------------------- best epoch currently 9
+Epoch 13 train_loss: 0.024639008205249377
+      13 val_loss: 0.02621931453611804
+-----------------------------EarlyStopping counter: 4 out of 5---------------------- best epoch currently 9
+Epoch 14 train_loss: 0.0245808101502262
+      14 val_loss: 0.024014444830584764
+-----------------------------EarlyStopping counter: 5 out of 5---------------------- best epoch currently 9
+Early stopping criterion met. Training stopped!!!
+wandb: Waiting for W&B process to finish... (success).
+wandb: - 0.001 MB of 0.036 MB uploaded (0.000 MB deduped)wandb: \ 0.001 MB of 0.036 MB uploaded (0.000 MB deduped)wandb: 
+wandb: Run history:
+wandb:  best_loss ▁
+wandb:      epoch ▁▁▁▁▂▂▃▃▃▃▃▃▄▄▅▅▅▅▅▅▆▆▇▇▇▇▇▇██
+wandb:  test_loss ▁
+wandb: train_loss █▇▆▆▄▂▁▁▁▁▁▁▁▁▁
+wandb:   val_loss █▇▇▆▅▂▂▃▃▁▁▃▃▃▁
+wandb: 
+wandb: Run summary:
+wandb:  best_loss 0.02319
+wandb:      epoch 14
+wandb:  test_loss 0.02573
+wandb: train_loss 0.02458
+wandb:   val_loss 0.02401
+wandb: 
+wandb: Synced wobbly-microwave-25: https://wandb.ai/diliadis/Protein_autoencoder/runs/2og1j5il
+wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20221115_121642-2og1j5il/logs
+wandb: - Waiting for wandb.init()...wandb: \ Waiting for wandb.init()...wandb: wandb version 0.13.5 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.13.4
+wandb: Run data is saved locally in /data/dimitriosi_datasets/dot_vs_mlp/auto_encoders/wandb/run-20221115_121711-2zpkv32w
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run confused-planet-26
+wandb: ⭐️ View project at https://wandb.ai/diliadis/Protein_autoencoder
+wandb: 🚀 View run at https://wandb.ai/diliadis/Protein_autoencoder/runs/2zpkv32w
+TEST_loss: 0.025733577850415457
+testing the following config: {'learning_rate': 0.01, 'cnn_filters': [4], 'cnn_kernels': [12]}
+Using the following device: cuda:7
+Early stopping detected metric: loss
+Num train batches: 9
+Num validation batches: 2
+Num test batches: 3
+Epoch 0 train_loss: 0.0380386195910169
+      0 val_loss: 0.03753491376258966
+Epoch 1 train_loss: 0.03732666790639941
+      1 val_loss: 0.03682275786752549
+Epoch 2 train_loss: 0.036607936203676555
+      2 val_loss: 0.03595467942189861
+Epoch 3 train_loss: 0.03570227852920147
+      3 val_loss: 0.03518422343533058
+Epoch 4 train_loss: 0.034933619426515454
+      4 val_loss: 0.034710721927640145
+-----------------------------EarlyStopping counter: 1 out of 5---------------------- best epoch currently 3
+Epoch 5 train_loss: 0.03416219952289576
+      5 val_loss: 0.03329822463353288
+Epoch 6 train_loss: 0.03344981104859842
+      6 val_loss: 0.03248198211904626
+Epoch 7 train_loss: 0.032647778019075736
+      7 val_loss: 0.03171332685752554
+Epoch 8 train_loss: 0.03192877735640254
+      8 val_loss: 0.03095055895308468
+Epoch 9 train_loss: 0.031078618170393715
+      9 val_loss: 0.030170114114785283
+Epoch 10 train_loss: 0.030481128831064755
+      10 val_loss: 0.029876921331548498
+-----------------------------EarlyStopping counter: 1 out of 5---------------------- best epoch currently 9
+Epoch 11 train_loss: 0.02990546537293939
+      11 val_loss: 0.02934000862328423
+Epoch 12 train_loss: 0.029334146061117394
+      12 val_loss: 0.028644469738163078
+Epoch 13 train_loss: 0.028739829560278943
+      13 val_loss: 0.027883487645571442
+Epoch 14 train_loss: 0.028372285783161658
+      14 val_loss: 0.026952371368566284
+Epoch 15 train_loss: 0.027803885796079737
+      15 val_loss: 0.02698816770394528
+-----------------------------EarlyStopping counter: 1 out of 5---------------------- best epoch currently 14
+Epoch 16 train_loss: 0.027555549281557797
+      16 val_loss: 0.027606661333149995
+-----------------------------EarlyStopping counter: 2 out of 5---------------------- best epoch currently 14
+Epoch 17 train_loss: 0.027096998540636873
+      17 val_loss: 0.025973258232489846
+Epoch 18 train_loss: 0.02676056095111491
+      18 val_loss: 0.026284617040059962
+-----------------------------EarlyStopping counter: 1 out of 5---------------------- best epoch currently 17
+Epoch 19 train_loss: 0.02639563506957804
+      19 val_loss: 0.02573398484782779
+-----------------------------EarlyStopping counter: 2 out of 5---------------------- best epoch currently 17
+Epoch 20 train_loss: 0.0265211794321157
+      20 val_loss: 0.02550135778227979
+-----------------------------EarlyStopping counter: 3 out of 5---------------------- best epoch currently 17
+Epoch 21 train_loss: 0.02612132823948527
+      21 val_loss: 0.025021159798692526
+Epoch 22 train_loss: 0.025941479775856587
+      22 val_loss: 0.025109034057136274
+-----------------------------EarlyStopping counter: 1 out of 5---------------------- best epoch currently 21
+Epoch 23 train_loss: 0.025678931770775102
+      23 val_loss: 0.025515150711583952
+-----------------------------EarlyStopping counter: 2 out of 5---------------------- best epoch currently 21
+Epoch 24 train_loss: 0.02567946551182046
+      24 val_loss: 0.0244486771867278
+Epoch 25 train_loss: 0.0253756503116681
+      25 val_loss: 0.024909184329470833
+-----------------------------EarlyStopping counter: 1 out of 5---------------------- best epoch currently 24
+Epoch 26 train_loss: 0.025464385749303785
+      26 val_loss: 0.02473757230085146
+-----------------------------EarlyStopping counter: 2 out of 5---------------------- best epoch currently 24
+Epoch 27 train_loss: 0.025027841316768926
+      27 val_loss: 0.025176906851901305
+-----------------------------EarlyStopping counter: 3 out of 5---------------------- best epoch currently 24
+Epoch 28 train_loss: 0.025149553276538016
+      28 val_loss: 0.02448978007162726
+-----------------------------EarlyStopping counter: 4 out of 5---------------------- best epoch currently 24
+Epoch 29 train_loss: 0.024841597476321114
+      29 val_loss: 0.023368704417376183
+Epoch 30 train_loss: 0.024940995697997452
+      30 val_loss: 0.025539261584112218
+-----------------------------EarlyStopping counter: 1 out of 5---------------------- best epoch currently 29
+Epoch 31 train_loss: 0.024725042736062665
+      31 val_loss: 0.02427301268111315
+-----------------------------EarlyStopping counter: 2 out of 5---------------------- best epoch currently 29
+Epoch 32 train_loss: 0.024605898401150902
+      32 val_loss: 0.02230729232967581
+Epoch 33 train_loss: 0.02468504180981184
+      33 val_loss: 0.024788188050393158
+-----------------------------EarlyStopping counter: 1 out of 5---------------------- best epoch currently 32
+Epoch 34 train_loss: 0.024392212430394505
+      34 val_loss: 0.024027952831086843
+-----------------------------EarlyStopping counter: 2 out of 5---------------------- best epoch currently 32
+Epoch 35 train_loss: 0.024451616923289402
+      35 val_loss: 0.02471280561692027
+-----------------------------EarlyStopping counter: 3 out of 5---------------------- best epoch currently 32
+Epoch 36 train_loss: 0.02433681997787605
+      36 val_loss: 0.023335129834920552
+-----------------------------EarlyStopping counter: 4 out of 5---------------------- best epoch currently 32
+Epoch 37 train_loss: 0.024251032186981172
+      37 val_loss: 0.02433314304473288
+-----------------------------EarlyStopping counter: 5 out of 5---------------------- best epoch currently 32
+Early stopping criterion met. Training stopped!!!
+wandb: Waiting for W&B process to finish... (success).
+wandb: - 0.001 MB of 0.001 MB uploaded (0.000 MB deduped)wandb: \ 0.001 MB of 0.001 MB uploaded (0.000 MB deduped)wandb: 
+wandb: Run history:
+wandb:  best_loss ▁
+wandb:      epoch ▁▁▁▁▂▂▂▂▂▃▃▃▃▃▃▄▄▄▄▄▅▅▅▅▅▆▆▆▆▆▆▆▇▇▇▇▇███
+wandb:  test_loss ▁
+wandb: train_loss ██▇▇▆▆▆▅▅▄▄▄▄▃▃▃▃▂▂▂▂▂▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁
+wandb:   val_loss ██▇▇▇▆▆▅▅▅▄▄▄▄▃▃▃▃▃▃▂▂▂▂▂▂▂▂▂▁▂▂▁▂▂▂▁▂
+wandb: 
+wandb: Run summary:
+wandb:  best_loss 0.02231
+wandb:      epoch 37
+wandb:  test_loss 0.02415
+wandb: train_loss 0.02425
+wandb:   val_loss 0.02433
+wandb: 
+wandb: Synced confused-planet-26: https://wandb.ai/diliadis/Protein_autoencoder/runs/2zpkv32w
+wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20221115_121711-2zpkv32w/logs
+wandb: - Waiting for wandb.init()...wandb: \ Waiting for wandb.init()...wandb: wandb version 0.13.5 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.13.4
+wandb: Run data is saved locally in /data/dimitriosi_datasets/dot_vs_mlp/auto_encoders/wandb/run-20221115_121804-3ds9zdvo
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run youthful-universe-27
+wandb: ⭐️ View project at https://wandb.ai/diliadis/Protein_autoencoder
+wandb: 🚀 View run at https://wandb.ai/diliadis/Protein_autoencoder/runs/3ds9zdvo
+TEST_loss: 0.02415485703300511
+testing the following config: {'learning_rate': 1e-05, 'cnn_filters': [16], 'cnn_kernels': [16]}
+Using the following device: cuda:7
+Early stopping detected metric: loss
+Num train batches: 9
+Num validation batches: 2
+Num test batches: 3
+Epoch 0 train_loss: 0.033743743455232185
+      0 val_loss: 0.02908632868742017
+Epoch 1 train_loss: 0.025127976461639976
+      1 val_loss: 0.02139199156207456
+Epoch 2 train_loss: 0.01953117654244129
+      2 val_loss: 0.018784023713839686
+Epoch 3 train_loss: 0.015968598427776995
+      3 val_loss: 0.01465034526436711
+Epoch 4 train_loss: 0.013267846272627733
+      4 val_loss: 0.011761753532479373
+Epoch 5 train_loss: 0.010723991535825747
+      5 val_loss: 0.009965330538750077
+Epoch 6 train_loss: 0.008681248437665748
+      6 val_loss: 0.007547452010225479
+Epoch 7 train_loss: 0.007003163939001949
+      7 val_loss: 0.006348633890868713
+Epoch 8 train_loss: 0.005648903976603187
+      8 val_loss: 0.00528859859173658
+Epoch 9 train_loss: 0.00461035494925219
+      9 val_loss: 0.004514386988284366
+Epoch 10 train_loss: 0.003933346637109309
+      10 val_loss: 0.0036265365684170826
+Epoch 11 train_loss: 0.003307351037594454
+      11 val_loss: 0.0033713892173107655
+-----------------------------EarlyStopping counter: 1 out of 5---------------------- best epoch currently 10
+Epoch 12 train_loss: 0.002879362660290007
+      12 val_loss: 0.0026178875759372945
+Epoch 13 train_loss: 0.002515581024662617
+      13 val_loss: 0.0025045697718733525
+-----------------------------EarlyStopping counter: 1 out of 5---------------------- best epoch currently 12
+Epoch 14 train_loss: 0.0022480474544427833
+      14 val_loss: 0.00229219941463241
+-----------------------------EarlyStopping counter: 2 out of 5---------------------- best epoch currently 12
+Epoch 15 train_loss: 0.002013666947085179
+      15 val_loss: 0.0018821886953744595
+Epoch 16 train_loss: 0.0018463906568846695
+      16 val_loss: 0.001749939801069825
+-----------------------------EarlyStopping counter: 1 out of 5---------------------- best epoch currently 15
+Epoch 17 train_loss: 0.0016914981293237592
+      17 val_loss: 0.0017893438918895434
+-----------------------------EarlyStopping counter: 2 out of 5---------------------- best epoch currently 15
+Epoch 18 train_loss: 0.0015668095601784693
+      18 val_loss: 0.0015190121378880058
+-----------------------------EarlyStopping counter: 3 out of 5---------------------- best epoch currently 15
+Epoch 19 train_loss: 0.001442671002345795
+      19 val_loss: 0.00151419130530201
+-----------------------------EarlyStopping counter: 4 out of 5---------------------- best epoch currently 15
+Epoch 20 train_loss: 0.0013572628025771273
+      20 val_loss: 0.001205647841609403
+Epoch 21 train_loss: 0.0012705393873104912
+      21 val_loss: 0.0012192951441605685
+-----------------------------EarlyStopping counter: 1 out of 5---------------------- best epoch currently 20
+Epoch 22 train_loss: 0.0012174787618130431
+      22 val_loss: 0.0012003426029321407
+-----------------------------EarlyStopping counter: 2 out of 5---------------------- best epoch currently 20
+Epoch 23 train_loss: 0.0011643571731547746
+      23 val_loss: 0.0011997461497552297
+-----------------------------EarlyStopping counter: 3 out of 5---------------------- best epoch currently 20
+Epoch 24 train_loss: 0.0010933717111500476
+      24 val_loss: 0.0010682449811395896
+-----------------------------EarlyStopping counter: 4 out of 5---------------------- best epoch currently 20
+Epoch 25 train_loss: 0.0010524134732194605
+      25 val_loss: 0.0009691805330496757
+-----------------------------EarlyStopping counter: 5 out of 5---------------------- best epoch currently 20
+Early stopping criterion met. Training stopped!!!
+wandb: Waiting for W&B process to finish... (success).
+wandb: - 0.001 MB of 0.001 MB uploaded (0.000 MB deduped)wandb: \ 0.001 MB of 0.001 MB uploaded (0.000 MB deduped)wandb: 
+wandb: Run history:
+wandb:  best_loss ▁
+wandb:      epoch ▁▁▁▁▂▂▂▂▂▂▃▃▃▃▄▄▄▄▄▄▅▅▅▅▅▅▆▆▆▆▆▇▇▇▇▇▇███
+wandb:  test_loss ▁
+wandb: train_loss █▆▅▄▄▃▃▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:   val_loss █▆▅▄▄▃▃▂▂▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:  best_loss 0.00097
+wandb:      epoch 25
+wandb:  test_loss 0.00109
+wandb: train_loss 0.00105
+wandb:   val_loss 0.00097
+wandb: 
+wandb: Synced youthful-universe-27: https://wandb.ai/diliadis/Protein_autoencoder/runs/3ds9zdvo
+wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20221115_121804-3ds9zdvo/logs
+wandb: - Waiting for wandb.init()...wandb: \ Waiting for wandb.init()...wandb: wandb version 0.13.5 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.13.4
+wandb: Run data is saved locally in /data/dimitriosi_datasets/dot_vs_mlp/auto_encoders/wandb/run-20221115_121845-1x420uyn
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run hopeful-disco-28
+wandb: ⭐️ View project at https://wandb.ai/diliadis/Protein_autoencoder
+wandb: 🚀 View run at https://wandb.ai/diliadis/Protein_autoencoder/runs/1x420uyn
+TEST_loss: 0.001092683229572351
+testing the following config: {'learning_rate': 0.0001, 'cnn_filters': [32, 4, 128], 'cnn_kernels': [4, 16, 8]}
+Using the following device: cuda:7
+Early stopping detected metric: loss
+Num train batches: 9
+Num validation batches: 2
+Num test batches: 3
+Epoch 0 train_loss: 0.03890307884467626
+      0 val_loss: 0.038074899343270595
+Epoch 1 train_loss: 0.037865817128374876
+      1 val_loss: 0.03765552768763991
+-----------------------------EarlyStopping counter: 1 out of 5---------------------- best epoch currently 0
+Epoch 2 train_loss: 0.03762247706370401
+      2 val_loss: 0.03742509525921919
+Epoch 3 train_loss: 0.03744927460153392
+      3 val_loss: 0.03744043769853727
+-----------------------------EarlyStopping counter: 1 out of 5---------------------- best epoch currently 2
+Epoch 4 train_loss: 0.03732738649871284
+      4 val_loss: 0.03726686544934559
+-----------------------------EarlyStopping counter: 2 out of 5---------------------- best epoch currently 2
+Epoch 5 train_loss: 0.037137155203946955
+      5 val_loss: 0.03707035110682814
+-----------------------------EarlyStopping counter: 3 out of 5---------------------- best epoch currently 2
+Epoch 6 train_loss: 0.03674909506777444
+      6 val_loss: 0.036383641231029024
+Epoch 7 train_loss: 0.036050507407885526
+      7 val_loss: 0.03568583595792698
+Epoch 8 train_loss: 0.035308608208795694
+      8 val_loss: 0.03463051730882519
+Epoch 9 train_loss: 0.03482144200891366
+      9 val_loss: 0.03468428109607319
+-----------------------------EarlyStopping counter: 1 out of 5---------------------- best epoch currently 8
+Epoch 10 train_loss: 0.034372617174515695
+      10 val_loss: 0.03430072718377752
+-----------------------------EarlyStopping counter: 2 out of 5---------------------- best epoch currently 8
+Epoch 11 train_loss: 0.03406417154647515
+      11 val_loss: 0.033743045053010484
+Epoch 12 train_loss: 0.03380981397878747
+      12 val_loss: 0.033274664655523645
+-----------------------------EarlyStopping counter: 1 out of 5---------------------- best epoch currently 11
+Epoch 13 train_loss: 0.03364653337054643
+      13 val_loss: 0.033365326637638235
+-----------------------------EarlyStopping counter: 2 out of 5---------------------- best epoch currently 11
+Epoch 14 train_loss: 0.03346105744795322
+      14 val_loss: 0.033387545755245746
+-----------------------------EarlyStopping counter: 3 out of 5---------------------- best epoch currently 11
+Epoch 15 train_loss: 0.03325568662735058
+      15 val_loss: 0.03348211922310791
+-----------------------------EarlyStopping counter: 4 out of 5---------------------- best epoch currently 11
+Epoch 16 train_loss: 0.03318628438832414
+      16 val_loss: 0.03274116654997797
+Epoch 17 train_loss: 0.033031530391669256
+      17 val_loss: 0.03277401886763473
+-----------------------------EarlyStopping counter: 1 out of 5---------------------- best epoch currently 16
+Epoch 18 train_loss: 0.03300649009730106
+      18 val_loss: 0.03253956727018867
+-----------------------------EarlyStopping counter: 2 out of 5---------------------- best epoch currently 16
+Epoch 19 train_loss: 0.03287396528155369
+      19 val_loss: 0.03289735208844542
+-----------------------------EarlyStopping counter: 3 out of 5---------------------- best epoch currently 16
+Epoch 20 train_loss: 0.03260652886249001
+      20 val_loss: 0.03250052753424175
+-----------------------------EarlyStopping counter: 4 out of 5---------------------- best epoch currently 16
+Epoch 21 train_loss: 0.032407902707215136
+      21 val_loss: 0.032796376011633474
+-----------------------------EarlyStopping counter: 5 out of 5---------------------- best epoch currently 16
+Early stopping criterion met. Training stopped!!!
+wandb: Waiting for W&B process to finish... (success).
+wandb: 
+wandb: Run history:
+wandb:  best_loss ▁
+wandb:      epoch ▁▁▁▁▂▂▂▂▂▂▃▃▃▃▃▄▄▄▄▄▅▅▅▅▅▅▆▆▆▆▆▇▇▇▇▇▇███
+wandb:  test_loss ▁
+wandb: train_loss █▇▇▆▆▆▆▅▄▄▃▃▃▂▂▂▂▂▂▂▁▁
+wandb:   val_loss █▇▇▇▇▇▆▅▄▄▃▃▂▂▂▂▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:  best_loss 0.0325
+wandb:      epoch 21
+wandb:  test_loss 0.03228
+wandb: train_loss 0.03241
+wandb:   val_loss 0.0328
+wandb: 
+wandb: Synced hopeful-disco-28: https://wandb.ai/diliadis/Protein_autoencoder/runs/1x420uyn
+wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20221115_121845-1x420uyn/logs
+wandb: - Waiting for wandb.init()...wandb: \ Waiting for wandb.init()...wandb: wandb version 0.13.5 is available!  To upgrade, please run:
+wandb:  $ pip install wandb --upgrade
+wandb: Tracking run with wandb version 0.13.4
+wandb: Run data is saved locally in /data/dimitriosi_datasets/dot_vs_mlp/auto_encoders/wandb/run-20221115_121923-47g7ntjx
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run zany-water-29
+wandb: ⭐️ View project at https://wandb.ai/diliadis/Protein_autoencoder
+wandb: 🚀 View run at https://wandb.ai/diliadis/Protein_autoencoder/runs/47g7ntjx
+TEST_loss: 0.03228205733074232
+testing the following config: {'learning_rate': 0.01, 'cnn_filters': [64, 128], 'cnn_kernels': [12, 4]}
+Using the following device: cuda:7
+Early stopping detected metric: loss
+Num train batches: 9
+Num validation batches: 2
+Num test batches: 3
+Epoch 0 train_loss: 0.029905036311061475
+      0 val_loss: 0.02340875559668403
+Epoch 1 train_loss: 0.021624896831262733
+      1 val_loss: 0.018260061934135693
+Epoch 2 train_loss: 0.017991260397703497
+      2 val_loss: 0.015355882098964695
+Epoch 3 train_loss: 0.013431679015345087
+      3 val_loss: 0.01254678510470189
+Epoch 4 train_loss: 0.010072203136418992
+      4 val_loss: 0.008209248274610004
+Epoch 5 train_loss: 0.006919448077403
+      5 val_loss: 0.00567053958398284
+Epoch 6 train_loss: 0.004870179136100157
+      6 val_loss: 0.004517251097783564
+Epoch 7 train_loss: 0.003401236823613227
+      7 val_loss: 0.002909290502426825
+Epoch 8 train_loss: 0.0024873422571913472
+      8 val_loss: 0.0020397027688702934
+Epoch 9 train_loss: 0.0019236009492567625
+      9 val_loss: 0.0017129316665231225
+-----------------------------EarlyStopping counter: 1 out of 5---------------------- best epoch currently 8
+Epoch 10 train_loss: 0.0015430489332308305
+      10 val_loss: 0.0014163321081290853
+Epoch 11 train_loss: 0.0012810863682405204
+      11 val_loss: 0.0011762824587410658
+-----------------------------EarlyStopping counter: 1 out of 5---------------------- best epoch currently 10
+Epoch 12 train_loss: 0.0011211124595913548
+      12 val_loss: 0.0010225232305392012
+-----------------------------EarlyStopping counter: 2 out of 5---------------------- best epoch currently 10
+Epoch 13 train_loss: 0.0010033491247896356
+      13 val_loss: 0.0009525937760525786
+-----------------------------EarlyStopping counter: 3 out of 5---------------------- best epoch currently 10
+Epoch 14 train_loss: 0.0009232880137892815
+      14 val_loss: 0.0008939118507584648
+Epoch 15 train_loss: 0.0008444805620176134
+      15 val_loss: 0.0007896927544845166
+-----------------------------EarlyStopping counter: 1 out of 5---------------------- best epoch currently 14
+Epoch 16 train_loss: 0.0007828283093871042
+      16 val_loss: 0.000716442128446755
+-----------------------------EarlyStopping counter: 2 out of 5---------------------- best epoch currently 14
+Epoch 17 train_loss: 0.0007480321508919081
+      17 val_loss: 0.0006371141148813574
+-----------------------------EarlyStopping counter: 3 out of 5---------------------- best epoch currently 14
+Epoch 18 train_loss: 0.00070724437073062
+      18 val_loss: 0.0006634172502808285
+-----------------------------EarlyStopping counter: 4 out of 5---------------------- best epoch currently 14
+Epoch 19 train_loss: 0.000679532975666862
+      19 val_loss: 0.0007145283159969125
+-----------------------------EarlyStopping counter: 5 out of 5---------------------- best epoch currently 14
+Early stopping criterion met. Training stopped!!!
+wandb: Waiting for W&B process to finish... (success).
+wandb: - 0.001 MB of 0.001 MB uploaded (0.000 MB deduped)wandb: \ 0.030 MB of 0.030 MB uploaded (0.000 MB deduped)wandb: | 0.030 MB of 0.030 MB uploaded (0.000 MB deduped)wandb: 
+wandb: Run history:
+wandb:  best_loss ▁
+wandb:      epoch ▁▁▁▁▂▂▂▂▂▂▃▃▃▃▄▄▄▄▄▄▅▅▅▅▅▅▆▆▆▆▇▇▇▇▇▇████
+wandb:  test_loss ▁
+wandb: train_loss █▆▅▄▃▂▂▂▁▁▁▁▁▁▁▁▁▁▁▁
+wandb:   val_loss █▆▆▅▃▃▂▂▁▁▁▁▁▁▁▁▁▁▁▁
+wandb: 
+wandb: Run summary:
+wandb:  best_loss 0.00064
+wandb:      epoch 19
+wandb:  test_loss 0.00077
+wandb: train_loss 0.00068
+wandb:   val_loss 0.00071
+wandb: 
+wandb: Synced zany-water-29: https://wandb.ai/diliadis/Protein_autoencoder/runs/47g7ntjx
+wandb: Synced 6 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: ./wandb/run-20221115_121923-47g7ntjx/logs
+TEST_loss: 0.0007710096848907275
