@@ -91,7 +91,7 @@ def model_pretrained(path_dir = None, model = None):
 		path_dir = download_pretrained_model(model)
 	config = load_dict(path_dir)
 	model = DBTA(**config)
-	model.load_pretrained(path_dir + '/model.pt')    
+	model.load_pretrained(path_dir + '/model.pt', model.device)    
 	return model
 
 def repurpose(X_repurpose, target, model, drug_names = None, target_name = None, 
@@ -335,6 +335,8 @@ class DBTA:
 		if config['experiment_name'] is None:
 			self.experiment_dir = self.result_folder+self.config['general_architecture_version']+'_'+datetime.now().strftime('%d_%m_%Y__%H_%M_%S')
 			os.mkdir(self.experiment_dir)
+		else:
+			self.experiment_dir = self.result_folder+config['experiment_name']
 
 		self.binary = False
 		if 'num_workers' not in self.config.keys():
@@ -693,5 +695,3 @@ class DBTA:
 		self.model.load_state_dict(state_dict)
 
 		self.binary = self.config['binary']
-
-
