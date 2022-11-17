@@ -102,20 +102,67 @@ class AutoEncoder_model(nn.Module):
         self.cnn_filters = [26] + config['cnn_filters']
         self.cnn_kernels = config['cnn_kernels']
         
-        self.encoder = nn.Sequential()
-        self.decoder = nn.Sequential()
+        self.encoder_list = []
+        self.decoder_list = []
         
         for i in range(len(self.cnn_filters)-1):
-            self.encoder.append(nn.Conv1d(in_channels=self.cnn_filters[i], out_channels=self.cnn_filters[i+1], kernel_size=self.cnn_kernels[i]))
-            self.encoder.append(nn.ReLU(True))
+            self.encoder_list.append(nn.Conv1d(in_channels=self.cnn_filters[i], out_channels=self.cnn_filters[i+1], kernel_size=self.cnn_kernels[i]))
+            self.encoder_list.append(nn.ReLU(True))
             
         for i in reversed(range(len(self.cnn_filters)-1)):
-            self.decoder.append(nn.ConvTranspose1d(in_channels=self.cnn_filters[i+1], out_channels=self.cnn_filters[i], kernel_size=self.cnn_kernels[-i]))
-            self.decoder.append(nn.ReLU(True))
-        self.decoder.append(nn.Tanh())
-            
+            self.decoder_list.append(nn.ConvTranspose1d(in_channels=self.cnn_filters[i+1], out_channels=self.cnn_filters[i], kernel_size=self.cnn_kernels[-i]))
+            self.decoder_list.append(nn.ReLU(True))
+        self.decoder_list.append(nn.Tanh())
+        
+        self.encoder = nn.Sequential(*self.encoder_list)
+        self.decoder = nn.Sequential(*self.decoder_list)
+
         self.encoder = self.encoder.double()
         self.decoder = self.decoder.double()
+        
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.decoder(x)
+        return x
+    
+class AutoEncoder_model_with_linear_embedding(nn.Module):
+    def __init__(self, **config):
+        super(AutoEncoder_model, self).__init__()
+        
+        self.cnn_filters = [26] + config['cnn_filters']
+        self.cnn_kernels = config['cnn_kernels']
+        
+        self.output_sizes = [1000]
+        
+        self.encoder_list = []
+        self.decoder_list = []
+        
+        for i in range(len(self.cnn_filters)-1):
+            self.output_sizes.append(self.calc_output_size(self.output_sizes[-1], self.cnn_kernels[i], 0, 1))
+            self.encoder_list.append(nn.Conv1d(in_channels=self.cnn_filters[i], out_channels=self.cnn_filters[i+1], kernel_size=self.cnn_kernels[i]))
+            self.encoder_list.append(nn.ReLU(True))
+        self.encoder_list.append(nn.Flatten())
+        self.encoder_list.append(nn.Linear(self.output_sizes[-1]*self.cnn_filters[-1], config['embedding_size']))
+        
+        self.decoder_list.append(nn.Linear(config['embedding_size'], self.output_sizes[-1]*self.cnn_filters[-1]))
+        self.decoder_list.append(nn.Unflatten(1, (self.cnn_filters[-1], self.output_sizes[-1])))
+        for i in reversed(range(len(self.cnn_filters)-1)):
+            self.decoder_list.append(nn.ConvTranspose1d(in_channels=self.cnn_filters[i+1], out_channels=self.cnn_filters[i], kernel_size=self.cnn_kernels[-i]))
+            self.decoder_list.append(nn.ReLU(True))
+        self.decoder_list.append(nn.Tanh())
+        
+        self.encoder = nn.Sequential(*self.encoder_list)
+        self.decoder = nn.Sequential(*self.decoder_list)
+
+        self.encoder = self.encoder.double()
+        self.decoder = self.decoder.double()
+    
+    def calc_output_size(self, W, K, P, S):
+        # w: input volume
+        # K: kernel size
+        # P: padding size
+        # S: stride size
+        return int(((W-K+2*P)/S)+1)
         
     def forward(self, x):
         x = self.encoder(x)
@@ -154,7 +201,10 @@ class AutoEncoder:
         print('Using the following device: '+str(self.device))
         
         # initialize a model
-        self.model = AutoEncoder_model(**config)
+        if 'embedding_size' in config:
+            self.model = AutoEncoder_model_with_linear_embedding(**config)
+        else:
+            self.model = AutoEncoder_model(**config)
         
         self.config = config
         

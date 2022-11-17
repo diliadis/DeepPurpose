@@ -27,7 +27,7 @@ def main(num_samples):
     drug_encoding = 'MPNN'
     target_encoding = 'CNN'
 
-    wandb_project_name = 'Protein_autoencoder'
+    wandb_project_name = 'Protein_autoencoder_with_linear_embedding'
     wandb_project_entity = 'diliadis'
     
     X_drugs, X_targets, y = dataset.load_process_DAVIS(path = './data', binary = False, convert_to_log = True, threshold = 30) # http://staff.cs.utu.fi/~aatapa/data/DrugTarget/
@@ -57,7 +57,7 @@ def main(num_samples):
         # 'hidden_dim_protein': [4, 8, 16, 32, 64, 128, 256, 512],
         'cnn_filters': [4, 8, 16, 32, 64, 128],
         'cnn_kernels': [2, 4, 8, 12, 16],
-
+        'embedding_size': [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
         # 'cls_depth': [1, 2, 3],
         # 'cls_hidden_size': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
     }
@@ -77,65 +77,80 @@ def main(num_samples):
                     # completed_param_combinations[param_name].append(run.config['cnn_target_filters'][int(param_name.split('_')[-1])]  if int(param_name.split('_')[-1]) < len(run.config['cnn_target_filters']) else -1)
                 elif 'cnn_kernels' in param_name:
                     completed_param_combinations[param_name].append(run.config['cnn_kernels'])
+                elif 'embedding_size' in param_name:
+                    completed_param_combinations[param_name].append(run.config['embedding_size'])
                     
     # dataframe with configurations already tested and logged to wandb
     completed_param_combinations_df = pd.DataFrame(completed_param_combinations) 
     
-    for experiment_id in range(num_samples):    
-        unseen_config_found = False
-        while not unseen_config_found:
-            temp_config = {param_name: random.sample(vals, 1)[0] for param_name, vals in ranges_dict.items() if param_name not in ['cnn_filter', 'cnn_kernel']} 
-            cnn_num_layers = random.randint(1, 3)
-            temp_config['cnn_filters'] = random.sample(ranges_dict['cnn_filters'], cnn_num_layers)
-            temp_config['cnn_kernels'] = random.sample(ranges_dict['cnn_kernels'], cnn_num_layers)
-            
-            if completed_param_combinations_df[
-                (completed_param_combinations_df['learning_rate'] == temp_config['learning_rate']) & 
-                (completed_param_combinations_df['cnn_filters'].apply((temp_config['cnn_filters']).__eq__)) &
-                (completed_param_combinations_df['cnn_kernels'].apply((temp_config['cnn_kernels']).__eq__))
-            ].empty:
-                unseen_config_found = True 
-        
-            print('testing the following config: '+str(temp_config))
-        
-        config = {
-            'wandb_project_name': 'Protein_autoencoder',
-            'wandb_project_entity': 'diliadis',
-            
-            'drug_encoding': 'MPNN',
-            'target_encoding': 'CNN',
-            
-            'cuda_id': '7',
-            'num_workers': 2,
-            
-            # 'experiment_name': 'autoencoder_'+branch_model_to_use+'_',
-            'experiment_name': None,
-            'result_folder': './results/',
-            
-            'decay': 0,
-            'LR': 0.001,
-            
-            'batch_size': 32,
-            'train_epoch': 100,
-            'test_every_X_epoch': 5,
-            
-            'cnn_filters': [32, 16, 8],
-            'cnn_kernels': [3, 3, 2],
-            
-            'use_early_stopping': True,
-            'patience': 5,
-            'delta': 0.0005,
-            'metric_to_optimize_early_stopping': 'loss',
-            'metric_to_optimize_best_epoch_selection': 'loss',
-            
-            'save_model': True
-        }
-        
-        config.update(temp_config)
+    num_remaining_configs = np.prod([len(v) for k, v in ranges_dict.items()]) - len(completed_param_combinations_df) 
     
-        # inialize the model
-        model = AutoEncoder(config)
-        model.train(train, val, test)
+    if num_remaining_configs != 0:
+        if num_samples > num_remaining_configs:
+            num_samples = num_remaining_configs
+            print('I will actually run '+str(num_samples)+' different configurations')
+    
+        for experiment_id in range(num_samples):    
+            unseen_config_found = False
+            while not unseen_config_found:
+                temp_config = {param_name: random.sample(vals, 1)[0] for param_name, vals in ranges_dict.items() if param_name not in ['cnn_filter', 'cnn_kernel']} 
+                cnn_num_layers = random.randint(1, 3)
+                temp_config['cnn_filters'] = random.sample(ranges_dict['cnn_filters'], cnn_num_layers)
+                temp_config['cnn_kernels'] = random.sample(ranges_dict['cnn_kernels'], cnn_num_layers)
+                
+                if completed_param_combinations_df[
+                    (completed_param_combinations_df['learning_rate'] == temp_config['learning_rate']) & 
+                    (completed_param_combinations_df['cnn_filters'].apply((temp_config['cnn_filters']).__eq__)) &
+                    (completed_param_combinations_df['cnn_kernels'].apply((temp_config['cnn_kernels']).__eq__)) & 
+                    (completed_param_combinations_df['embedding_size'].apply((temp_config['embedding_size']).__eq__))
+                ].empty:
+                    unseen_config_found = True 
+            
+                print('testing the following config: '+str(temp_config))
+            
+            config = {
+                'wandb_project_name': wandb_project_name,
+                'wandb_project_entity': 'diliadis',
+                
+                'drug_encoding': 'MPNN',
+                'target_encoding': 'CNN',
+                
+                'cuda_id': '0',
+                'num_workers': 8,
+                
+                # 'experiment_name': 'autoencoder_'+branch_model_to_use+'_',
+                'experiment_name': None,
+                'result_folder': './results/',
+                
+                'decay': 0,
+                'LR': 0.001,
+                
+                'batch_size': 32,
+                'train_epoch': 100,
+                'test_every_X_epoch': 5,
+                
+                'cnn_filters': [32, 16, 8],
+                'cnn_kernels': [3, 3, 2],
+                
+                'embedding_size': 2,
+                
+                'use_early_stopping': True,
+                'patience': 5,
+                'delta': 0.0005,
+                'metric_to_optimize_early_stopping': 'loss',
+                'metric_to_optimize_best_epoch_selection': 'loss',
+                
+                'save_model': True
+            }
+            
+            config.update(temp_config)
+        
+            # inialize the model
+            model = AutoEncoder(config)
+            model.train(train, val, test)
+    
+    else:
+        print('There are no more configurations left to be run')
         
 if __name__ == "__main__":
     n = int(sys.argv[1])
