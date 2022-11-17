@@ -1,11 +1,7 @@
 import torch
-import torchvision
 from torch import nn
 from torch.autograd import Variable
 from torch.utils.data import DataLoader, Dataset
-from torchvision import transforms
-from torchvision.utils import save_image
-from torchvision.datasets import MNIST
 import os
 from DeepPurpose import utils, dataset
 from datetime import datetime
