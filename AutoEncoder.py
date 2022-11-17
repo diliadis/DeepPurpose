@@ -123,7 +123,7 @@ class AutoEncoder_model(nn.Module):
     
 class AutoEncoder_model_with_linear_embedding(nn.Module):
     def __init__(self, **config):
-        super(AutoEncoder_model, self).__init__()
+        super(AutoEncoder_model_with_linear_embedding, self).__init__()
         
         self.cnn_filters = [26] + config['cnn_filters']
         self.cnn_kernels = config['cnn_kernels']
