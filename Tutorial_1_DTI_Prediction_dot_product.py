@@ -2,6 +2,7 @@ from DeepPurpose import utils, dataset
 from DeepPurpose import DTI as models
 import warnings
 import itertools
+import numpy as np
 import pandas as pd
 import wandb
 from tqdm import tqdm
@@ -20,7 +21,7 @@ def generate_combinations(ranges_per_param_name_dict, output_file_dir=None):
 
 def main(num_samples):
 
-    wandb_project_name = 'DeepPurpose'
+    wandb_project_name = 'DeepPurpose_repeat'
     wandb_project_entity = 'diliadis'
     general_architecture_version = 'dot_product'
     X_drugs, X_targets, y = dataset.load_process_DAVIS(path = './data', binary = False, convert_to_log = True, threshold = 30)
@@ -55,25 +56,21 @@ def main(num_samples):
             if run.config['general_architecture_version'] == general_architecture_version:
                 for param_name in ranges_dict.keys():
                     if param_name == 'learning_rate':
-                        completed_param_combinations[param_name].append(run.config['LR'][0] if isinstance(run.config['LR'], list) else run.config['LR'])
+                        completed_param_combinations[param_name].append(run.config['LR'])
                     elif param_name == 'embedding_size':
-                        completed_param_combinations[param_name].append(run.config['hidden_dim_drug'][0] if isinstance(run.config['hidden_dim_drug'], list) else run.config['hidden_dim_drug'])
-                    elif param_name in 'cls_depth':
-                        completed_param_combinations[param_name].append(len(run.config['cls_hidden_dims']))
-                    elif param_name == 'cls_hidden_size':
-                        completed_param_combinations[param_name].append(run.config['cls_hidden_dims'][0])
-                    elif 'cnn_target_filters' in param_name:
-                        completed_param_combinations[param_name].append(run.config['cnn_target_filters'])
-                        # completed_param_combinations[param_name].append(run.config['cnn_target_filters'][int(param_name.split('_')[-1])]  if int(param_name.split('_')[-1]) < len(run.config['cnn_target_filters']) else -1)
-                    elif 'cnn_target_kernels' in param_name:
-                        completed_param_combinations[param_name].append(run.config['cnn_target_kernels'])
-                        # completed_param_combinations[param_name].append(run.config['cnn_target_kernels'][int(param_name.split('_')[-1])] if int(param_name.split('_')[-1]) < len(run.config['cnn_target_kernels']) else -1)
+                        completed_param_combinations[param_name].append(run.config['hidden_dim_drug'])
                     else:
                         completed_param_combinations[param_name].append(run.config[param_name][0] if isinstance(run.config[param_name], list) else run.config[param_name])
     # dataframe with configurations already tested and logged to wandb
     completed_param_combinations_df = pd.DataFrame(completed_param_combinations)
+    
+    num_remaining_configs = np.prod([len(v) for k, v in ranges_dict.items()]) - len(completed_param_combinations_df) 
 
-
+    if num_remaining_configs != 0:
+        if num_samples > num_remaining_configs:
+            num_samples = num_remaining_configs
+            print('I will actually run '+str(num_samples)+' different configurations')
+            
     for experiment_id in range(num_samples):
         unseen_config_found = False
         while not unseen_config_found:
@@ -94,34 +91,34 @@ def main(num_samples):
             ].empty:
                 unseen_config_found = True 
 
-            print('testing the following config: '+str(temp_config))
-            config = utils.generate_config(drug_encoding = drug_encoding, 
-                                    target_encoding = target_encoding, 
-                                    # cls_hidden_dims = [1024,1024,512], 
-                                    train_epoch = 100, 
-                                    LR = temp_config['learning_rate'], 
-                                    batch_size = 256,
-                                    hidden_dim_drug = int(temp_config['embedding_size']),
-                                    hidden_dim_protein = int(temp_config['embedding_size']),
-                                    mpnn_depth = int(temp_config['mpnn_depth']),
-                                    
-                                    cnn_target_filters = temp_config['cnn_target_filters'],
-                                    cnn_target_kernels = temp_config['cnn_target_kernels'],
-                                    
-                                    general_architecture_version = general_architecture_version,
-                                    cuda_id='0',
-                                    wandb_project_name = wandb_project_name,
-                                    wandb_project_entity = wandb_project_entity,
-                                    use_early_stopping = True,
-                                    patience = 5,
-                                    delta = 0.001,
-                                    metric_to_optimize_early_stopping = 'loss',
-                                    num_workers=4,
-                                    )
-            config['protein_mode_coverage'] = 'extended'
-            
-            model = models.model_initialize(**config)
-            model.train(train, val, test)
+        print('testing the following config: '+str(temp_config))
+        config = utils.generate_config(drug_encoding = drug_encoding, 
+                                target_encoding = target_encoding, 
+                                # cls_hidden_dims = [1024,1024,512], 
+                                train_epoch = 100, 
+                                LR = temp_config['learning_rate'], 
+                                batch_size = 256,
+                                hidden_dim_drug = int(temp_config['embedding_size']),
+                                hidden_dim_protein = int(temp_config['embedding_size']),
+                                mpnn_depth = int(temp_config['mpnn_depth']),
+                                
+                                cnn_target_filters = temp_config['cnn_target_filters'],
+                                cnn_target_kernels = temp_config['cnn_target_kernels'],
+                                
+                                general_architecture_version = general_architecture_version,
+                                cuda_id='0',
+                                wandb_project_name = wandb_project_name,
+                                wandb_project_entity = wandb_project_entity,
+                                use_early_stopping = True,
+                                patience = 5,
+                                delta = 0.001,
+                                metric_to_optimize_early_stopping = 'loss',
+                                num_workers=4,
+                                )
+        config['protein_mode_coverage'] = 'extended'
+        
+        model = models.model_initialize(**config)
+        model.train(train, val, test)
 
 if __name__ == "__main__":
     n = int(sys.argv[1])
