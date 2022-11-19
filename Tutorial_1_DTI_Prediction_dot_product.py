@@ -43,8 +43,8 @@ def main(num_samples):
         'cnn_target_filters': [16, 32, 64, 128],
         'cnn_target_kernels': [4, 8, 12, 16],
 
-        'cls_depth': [1, 2, 3],
-        'cls_hidden_size': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
+        # 'cls_depth': [1, 2, 3],
+        # 'cls_hidden_size': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
     }
 
     api = wandb.Api()
@@ -84,8 +84,8 @@ def main(num_samples):
                 (completed_param_combinations_df['learning_rate'] == temp_config['learning_rate']) & 
                 (completed_param_combinations_df['embedding_size'] == temp_config['embedding_size']) & 
 
-                (completed_param_combinations_df['cls_depth'] == temp_config['cls_depth']) & 
-                (completed_param_combinations_df['cls_hidden_size'] == temp_config['cls_hidden_size']) &
+                # (completed_param_combinations_df['cls_depth'] == temp_config['cls_depth']) & 
+                # (completed_param_combinations_df['cls_hidden_size'] == temp_config['cls_hidden_size']) &
                 (completed_param_combinations_df['cnn_target_filters'].apply((temp_config['cnn_target_filters']).__eq__)) &
                 (completed_param_combinations_df['cnn_target_kernels'].apply((temp_config['cnn_target_kernels']).__eq__)) &
                 (completed_param_combinations_df['mpnn_depth'] == temp_config['mpnn_depth'])
