@@ -64,6 +64,7 @@ def main(run_id):
     # initialize the model
     model = models.model_initialize(**config)
     print(str(model.model))
+    print(str(model.config))
     # start training, validating, testing
     model.train(train, val, test)
     
