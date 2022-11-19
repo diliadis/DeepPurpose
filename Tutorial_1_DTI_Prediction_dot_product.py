@@ -73,8 +73,9 @@ def main(num_samples):
             
     for experiment_id in range(num_samples):
         unseen_config_found = False
+        temp_config = {}
         while not unseen_config_found:
-            temp_config = {param_name: random.sample(vals, 1)[0] for param_name, vals in ranges_dict.items() if param_name not in ['cnn_target_filter', 'cnn_target_kernel']} 
+            temp_config.update({param_name: random.sample(vals, 1)[0] for param_name, vals in ranges_dict.items() if param_name not in ['cnn_target_filter', 'cnn_target_kernel']}) 
             cnn_num_layers = random.randint(1, 3)
             temp_config['cnn_target_filters'] = random.sample(ranges_dict['cnn_target_filters'], cnn_num_layers)
             temp_config['cnn_target_kernels'] = random.sample(ranges_dict['cnn_target_kernels'], cnn_num_layers)
@@ -89,6 +90,7 @@ def main(num_samples):
                 (completed_param_combinations_df['cnn_target_kernels'].apply((temp_config['cnn_target_kernels']).__eq__)) &
                 (completed_param_combinations_df['mpnn_depth'] == temp_config['mpnn_depth'])
             ].empty:
+                print('NEW CONFIG FOUND: '+str(temp_config))
                 unseen_config_found = True 
 
         print('testing the following config: '+str(temp_config))
