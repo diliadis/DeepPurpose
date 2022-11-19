@@ -118,6 +118,7 @@ def main(num_samples):
         config['protein_mode_coverage'] = 'extended'
         
         model = models.model_initialize(**config)
+        print(str(model.config))
         model.train(train, val, test)
 
 if __name__ == "__main__":
