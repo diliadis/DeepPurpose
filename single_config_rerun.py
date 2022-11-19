@@ -32,11 +32,10 @@ def main(run_id):
                                 split_method='random',frac=[0.7,0.1,0.2],
                                 random_seed = 1)
     print('Done! ')
-    
-    
+    config = {}
+    '''
     config = utils.generate_config(drug_encoding = drug_encoding, 
                             target_encoding = target_encoding, 
-                            cls_hidden_dims = [100, 100, 100], 
                             train_epoch = 100, 
                             LR = 0.001, 
                             batch_size = 256,
@@ -58,7 +57,7 @@ def main(run_id):
                             num_workers=4,
                             experiment_name='best_'+general_architecture_version+'model'
                             )
-    
+    '''
     # updating the dummy config with the dictionary loaded from wandb
     config.update(best_config)
     # initialize the model
