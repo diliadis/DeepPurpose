@@ -10,14 +10,6 @@ import sys
 warnings.filterwarnings("ignore")
 import random
 
-def generate_combinations(ranges_per_param_name_dict, output_file_dir=None):
-    # generate all combinations and store in dataframe
-    df = pd.DataFrame(itertools.product(*ranges_per_param_name_dict.values()), columns=ranges_per_param_name_dict.keys())
-    # shuffle dataframe
-    df = df.sample(frac=1).reset_index(drop=True)
-    if output_file_dir:
-        df.to_csv(output_file_dir+'.csv', index=False)
-    return df
 
 def main(num_samples):
 
@@ -60,9 +52,11 @@ def main(num_samples):
                     elif param_name == 'embedding_size':
                         completed_param_combinations[param_name].append(run.config['hidden_dim_drug'])
                     else:
-                        completed_param_combinations[param_name].append(run.config[param_name][0] if isinstance(run.config[param_name], list) else run.config[param_name])
+                        completed_param_combinations[param_name].append(run.config[param_name])
+                        
     # dataframe with configurations already tested and logged to wandb
     completed_param_combinations_df = pd.DataFrame(completed_param_combinations)
+    print('completed configs df: '+str(completed_param_combinations_df))
     
     num_remaining_configs = np.prod([len(v) for k, v in ranges_dict.items()]) - len(completed_param_combinations_df) 
 
@@ -90,7 +84,9 @@ def main(num_samples):
                 (completed_param_combinations_df['cnn_target_kernels'].apply((temp_config['cnn_target_kernels']).__eq__)) &
                 (completed_param_combinations_df['mpnn_depth'] == temp_config['mpnn_depth'])
             ].empty:
+                completed_param_combinations_df = completed_param_combinations_df.append(temp_config)
                 print('NEW CONFIG FOUND: '+str(temp_config))
+                print('The dataframe now containts: '+str(completed_param_combinations_df))
                 unseen_config_found = True 
 
         print('testing the following config: '+str(temp_config))
