@@ -84,7 +84,7 @@ def main(num_samples):
                 (completed_param_combinations_df['cnn_target_kernels'].apply((temp_config['cnn_target_kernels']).__eq__)) &
                 (completed_param_combinations_df['mpnn_depth'] == temp_config['mpnn_depth'])
             ].empty:
-                completed_param_combinations_df = completed_param_combinations_df.append(temp_config)
+                completed_param_combinations_df = completed_param_combinations_df.append(temp_config, ignore_index=True)
                 print('NEW CONFIG FOUND: '+str(temp_config))
                 print('The dataframe now containts: '+str(completed_param_combinations_df))
                 unseen_config_found = True 
