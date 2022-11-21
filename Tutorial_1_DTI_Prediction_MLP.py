@@ -2,6 +2,7 @@ from DeepPurpose import utils, dataset
 from DeepPurpose import DTI as models
 import warnings
 import itertools
+import numpy as np
 import pandas as pd
 import wandb
 from tqdm import tqdm
@@ -9,18 +10,10 @@ import sys
 warnings.filterwarnings("ignore")
 import random
 
-def generate_combinations(ranges_per_param_name_dict, output_file_dir=None):
-    # generate all combinations and store in dataframe
-    df = pd.DataFrame(itertools.product(*ranges_per_param_name_dict.values()), columns=ranges_per_param_name_dict.keys())
-    # shuffle dataframe
-    df = df.sample(frac=1).reset_index(drop=True)
-    if output_file_dir:
-        df.to_csv(output_file_dir+'.csv', index=False)
-    return df
 
 def main(num_samples):
 
-    wandb_project_name = 'DeepPurpose'
+    wandb_project_name = 'DeepPurpose_repeat'
     wandb_project_entity = 'diliadis'
     general_architecture_version = 'mlp'
 
@@ -72,12 +65,21 @@ def main(num_samples):
                         completed_param_combinations[param_name].append(run.config[param_name][0] if isinstance(run.config[param_name], list) else run.config[param_name])
     # dataframe with configurations already tested and logged to wandb
     completed_param_combinations_df = pd.DataFrame(completed_param_combinations)
+    print('completed configs df: '+str(completed_param_combinations_df))
     
+    num_remaining_configs = np.prod([len(v) for k, v in ranges_dict.items()]) - len(completed_param_combinations_df) 
+    
+    if num_remaining_configs != 0:
+        if num_samples > num_remaining_configs:
+            num_samples = num_remaining_configs
+            print('I will actually run '+str(num_samples)+' different configurations')
     
     for experiment_id in range(num_samples):
+        
         unseen_config_found = False
+        temp_config = {}
         while not unseen_config_found:
-            temp_config = {param_name: random.sample(vals, 1)[0] for param_name, vals in ranges_dict.items() if param_name not in ['cnn_target_filter', 'cnn_target_kernel']} 
+            temp_config.update({param_name: random.sample(vals, 1)[0] for param_name, vals in ranges_dict.items() if param_name not in ['cnn_target_filter', 'cnn_target_kernel']}) 
             cnn_num_layers = random.randint(1, 3)
             temp_config['cnn_target_filters'] = random.sample(ranges_dict['cnn_target_filters'], cnn_num_layers)
             temp_config['cnn_target_kernels'] = random.sample(ranges_dict['cnn_target_kernels'], cnn_num_layers)
@@ -93,6 +95,9 @@ def main(num_samples):
                 (completed_param_combinations_df['cnn_target_kernels'].apply((temp_config['cnn_target_kernels']).__eq__)) &
                 (completed_param_combinations_df['mpnn_depth'] == temp_config['mpnn_depth'])
             ].empty:
+                completed_param_combinations_df = completed_param_combinations_df.append(temp_config, ignore_index=True)
+                print('NEW CONFIG FOUND: '+str(temp_config))
+                print('The dataframe now containts: '+str(completed_param_combinations_df))
                 unseen_config_found = True 
 
         print('testing the following config: '+str(temp_config))
@@ -105,23 +110,25 @@ def main(num_samples):
                                 hidden_dim_drug = int(temp_config['hidden_dim_drug']),
                                 hidden_dim_protein = int(temp_config['hidden_dim_protein']),
                                 mpnn_depth = int(temp_config['mpnn_depth']),
-                                
+                                mpnn_hidden_size = 50,
                                 cnn_target_filters = temp_config['cnn_target_filters'],
                                 cnn_target_kernels = temp_config['cnn_target_kernels'],
                                 
                                 general_architecture_version = general_architecture_version,
-                                cuda_id='6',
+                                cuda_id='0',
                                 wandb_project_name = wandb_project_name,
                                 wandb_project_entity = wandb_project_entity,
                                 use_early_stopping = True,
 					            patience = 5,
 					            delta = 0.001,
 					            metric_to_optimize_early_stopping = 'loss',
-                                num_workers=2,
+                                num_workers=4,
                                 )
         config['protein_mode_coverage'] = 'extended'
 
         model = models.model_initialize(**config)
+        print(str(model.model))
+        print(str(model.config))
         model.train(train, val, test)
 
 if __name__ == "__main__":
