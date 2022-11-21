@@ -14,8 +14,8 @@ from sklearn.metrics import mean_squared_error, roc_auc_score, average_precision
 from lifelines.utils import concordance_index
 from scipy.stats import pearsonr
 import pickle 
-torch.manual_seed(2)
-np.random.seed(3)
+# torch.manual_seed(2)
+# np.random.seed(3)
 import copy
 from prettytable import PrettyTable
 
@@ -91,7 +91,8 @@ def model_pretrained(path_dir = None, model = None):
 		path_dir = download_pretrained_model(model)
 	config = load_dict(path_dir)
 	model = DBTA(**config)
-	model.load_pretrained(path_dir + '/model.pt', model.device)    
+ 
+	model.load_pretrained(path_dir + '/model.pt', torch.device('cuda:' + str(config['cuda_id']) if torch.cuda.is_available() else 'cpu'))    
 	return model
 
 def repurpose(X_repurpose, target, model, drug_names = None, target_name = None, 
@@ -451,7 +452,7 @@ class DBTA:
 
 		training_generator = data.DataLoader(data_process_loader(train.index.values, train.Label.values, train, **self.config), **params)
 		if val is not None:
-			params['shuffle'] = True
+			params['shuffle'] = False
 			validation_generator = data.DataLoader(data_process_loader(val.index.values, val.Label.values, val, **self.config), **params)
 		
 		if test is not None:
@@ -676,11 +677,11 @@ class DBTA:
 		torch.save(self.model.state_dict(), path_dir + '/model.pt')
 		save_dict(path_dir, self.config)
 
-	def load_pretrained(self, path):
+	def load_pretrained(self, path, device):
 		if not os.path.exists(path):
 			os.makedirs(path)
 
-		state_dict = torch.load(path, map_location = torch.device('cpu'))
+		state_dict = torch.load(path, map_location = torch.device('cpu') if device is None else device)
 		# to support training from multi-gpus data-parallel:
         
 		if next(iter(state_dict))[:7] == 'module.':

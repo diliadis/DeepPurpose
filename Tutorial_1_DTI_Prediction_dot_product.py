@@ -24,8 +24,8 @@ def main(num_samples):
                                 split_method='random',frac=[0.7,0.1,0.2],
                                 random_seed = 1)
     print('Done! ')
-
-
+    
+    
     ranges_dict = {
         'learning_rate': [0.01, 0.001, 0.0001, 0.00001, 0.000001],
         'embedding_size': [4, 8, 16, 32, 64, 128, 256, 512],
@@ -64,8 +64,9 @@ def main(num_samples):
         if num_samples > num_remaining_configs:
             num_samples = num_remaining_configs
             print('I will actually run '+str(num_samples)+' different configurations')
-            
+
     for experiment_id in range(num_samples):
+        
         unseen_config_found = False
         temp_config = {}
         while not unseen_config_found:
@@ -88,6 +89,7 @@ def main(num_samples):
                 print('NEW CONFIG FOUND: '+str(temp_config))
                 print('The dataframe now containts: '+str(completed_param_combinations_df))
                 unseen_config_found = True 
+        
 
         print('testing the following config: '+str(temp_config))
         config = utils.generate_config(drug_encoding = drug_encoding, 
@@ -99,7 +101,7 @@ def main(num_samples):
                                 hidden_dim_drug = int(temp_config['embedding_size']),
                                 hidden_dim_protein = int(temp_config['embedding_size']),
                                 mpnn_depth = int(temp_config['mpnn_depth']),
-                                
+                                mpnn_hidden_size = 50,
                                 cnn_target_filters = temp_config['cnn_target_filters'],
                                 cnn_target_kernels = temp_config['cnn_target_kernels'],
                                 
@@ -113,9 +115,11 @@ def main(num_samples):
                                 metric_to_optimize_early_stopping = 'loss',
                                 num_workers=4,
                                 )
+
         config['protein_mode_coverage'] = 'extended'
         
         model = models.model_initialize(**config)
+        print(str(model.model))
         print(str(model.config))
         model.train(train, val, test)
 

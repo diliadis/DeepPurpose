@@ -34,20 +34,20 @@ def main(run_id):
     print('Done! ')
     config = {}
     '''
-    config = utils.generate_config(drug_encoding = drug_encoding, 
-                            target_encoding = target_encoding, 
+    config = utils.generate_config(drug_encoding = 'MPNN', 
+                            target_encoding = 'CNN', 
                             train_epoch = 100, 
-                            LR = 0.001, 
+                            LR = 0.0001, 
                             batch_size = 256,
-                            hidden_dim_drug = 64,
-                            hidden_dim_protein = 64,
-                            mpnn_depth = 3,
-                            
-                            cnn_target_filters = [32,64,96],
-                            cnn_target_kernels = [4,8,12],
+                            hidden_dim_drug = 32,
+                            hidden_dim_protein = 32,
+                            mpnn_depth = 1,
+                            mpnn_hidden_size = 50,
+                            cnn_target_filters = [64,32,128],
+                            cnn_target_kernels = [8, 16, 4],
                             
                             general_architecture_version = general_architecture_version,
-                            cuda_id='4',
+                            cuda_id='0',
                             wandb_project_name = wandb_project_name,
                             wandb_project_entity = wandb_project_entity,
                             use_early_stopping = True,
@@ -55,7 +55,7 @@ def main(run_id):
                             delta = 0.001,
                             metric_to_optimize_early_stopping = 'loss',
                             num_workers=4,
-                            experiment_name='best_'+general_architecture_version+'model'
+                            experiment_name='best_'+general_architecture_version+'model',
                             )
     '''
     # updating the dummy config with the dictionary loaded from wandb

@@ -14,8 +14,8 @@ from sklearn.metrics import mean_squared_error, roc_auc_score, average_precision
 from lifelines.utils import concordance_index
 from scipy.stats import pearsonr
 import pickle 
-torch.manual_seed(2)
-np.random.seed(3)
+# torch.manual_seed(2)
+# np.random.seed(3)
 import copy
 from prettytable import PrettyTable
 
