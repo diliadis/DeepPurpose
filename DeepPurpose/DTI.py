@@ -586,7 +586,7 @@ class DBTA:
 				if  self.config['performance_threshold']['direction'] == 'max':
 					self.config['performance_threshold']['value'] = -1*self.config['performance_threshold']['value'] 
 				if best_val_metrics_dict['val_'+self.config['performance_threshold']['metric_name']] > self.config['performance_threshold']['value']:
-					print('Metric '+self.config['performance_threshold']['metric_name']+' did not manage to improve over threshold '+str(self.config['performance_threshold']['value'])+' before epoch '+str(self.config['max_epochs_allowed']['max_epochs_allowed']))
+					print('Metric '+self.config['performance_threshold']['metric_name']+' did not manage to improve over threshold '+str(self.config['performance_threshold']['value'])+' before epoch '+str(self.config['performance_threshold']['max_epochs_allowed']))
 					break
 
 		# load early stopped model
