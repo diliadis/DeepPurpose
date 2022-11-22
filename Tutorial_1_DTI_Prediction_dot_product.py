@@ -114,6 +114,7 @@ def main(num_samples):
                                 delta = 0.001,
                                 metric_to_optimize_early_stopping = 'loss',
                                 num_workers=4,
+                                performance_threshold = {'metric_name':'MSE', 'value': 1, 'direction': 'min', 'max_epochs_allowed': 30}
                                 )
 
         config['protein_mode_coverage'] = 'extended'

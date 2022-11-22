@@ -866,6 +866,7 @@ def generate_config(drug_encoding = None, target_encoding = None,
 					delta = 0,
 					metric_to_optimize_early_stopping = 'loss',
 					metric_to_optimize_best_epoch_selection = 'loss',
+					performance_threshold = {}
 					):
 
 	base_config = {'input_dim_drug': input_dim_drug,
@@ -896,7 +897,15 @@ def generate_config(drug_encoding = None, target_encoding = None,
 	}
 	if not os.path.exists(base_config['result_folder']):
 		os.makedirs(base_config['result_folder'])
-	
+  
+  
+	if performance_threshold != set():
+		if False in [k in performance_threshold for k in ['metric_name', 'value', 'direction', 'max_epochs_allowed']]:
+			raise AttributeError('One of the following key-value pairs is missing from the performance_threshold dictionary: '+str(['metric_name', 'value', 'direction']))
+		if performance_threshold['direction'] not in ['max', 'min']:
+			raise AttributeError('The direction key in the performance_threshold dictionary has an invalid value instead of max or min')
+		base_config['performance_threshold'] = performance_threshold	
+
 	if drug_encoding == 'Morgan':
 		base_config['mlp_hidden_dims_drug'] = mlp_hidden_dims_drug # MLP classifier dim 1				
 	elif drug_encoding == 'ErG':
