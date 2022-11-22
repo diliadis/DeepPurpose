@@ -9,9 +9,11 @@ from tqdm import tqdm
 import sys
 warnings.filterwarnings("ignore")
 import random
+import argparse
 
 
-def main(num_samples):
+def main(num_samples, cuda_id, num_workers):
+    num_samples = int(num_samples)
 
     wandb_project_name = 'DeepPurpose_repeat'
     wandb_project_entity = 'diliadis'
@@ -115,14 +117,14 @@ def main(num_samples):
                                 cnn_target_kernels = temp_config['cnn_target_kernels'],
                                 
                                 general_architecture_version = general_architecture_version,
-                                cuda_id='0',
+                                cuda_id=str(cuda_id),
                                 wandb_project_name = wandb_project_name,
                                 wandb_project_entity = wandb_project_entity,
                                 use_early_stopping = True,
 					            patience = 5,
 					            delta = 0.001,
 					            metric_to_optimize_early_stopping = 'loss',
-                                num_workers=4,
+                                num_workers=int(num_workers),
                                 performance_threshold = {'metric_name':'MSE', 'value': 1, 'direction': 'min', 'max_epochs_allowed': 30}
                                 )
         config['protein_mode_coverage'] = 'extended'
@@ -133,5 +135,12 @@ def main(num_samples):
         model.train(train, val, test)
 
 if __name__ == "__main__":
-    n = int(sys.argv[1])
-    main(n)
+    parser = argparse.ArgumentParser(description="DeepPurpose DTI example", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("--num_configs", help="number of different configuration that will be trained and tested")
+    parser.add_argument("--cuda_id", help="the id of the GPU that will be used for training")
+    parser.add_argument("--num_workers", help="the number of workers that will be used by the dataloaders")
+
+    args = parser.parse_args()
+    config = vars(args)
+    
+    main(config['num_configs'], config['cuda_id'], config['num_workers'])
