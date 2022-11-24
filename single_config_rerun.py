@@ -14,7 +14,7 @@ def main(run_id):
     
     general_architecture_version = 'dot_product'
     
-    wandb_project_name = 'DeepPurpose_repeat'
+    wandb_project_name = 'DeepPurpose_repeat_2'
     wandb_project_entity = 'diliadis'
     
     # load the config of the requested run from wandb

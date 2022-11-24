@@ -86,13 +86,15 @@ def model_initialize(**config):
 	model = DBTA(**config)
 	return model
 
-def model_pretrained(path_dir = None, model = None):
+def model_pretrained(path_dir = None, model = None, temp_config=None, cuda_id=None):
 	if model is not None:
 		path_dir = download_pretrained_model(model)
 	config = load_dict(path_dir)
+	if temp_config is not None:
+ 		config.update(temp_config) 
 	model = DBTA(**config)
  
-	model.load_pretrained(path_dir + '/model.pt', torch.device('cuda:' + str(config['cuda_id']) if torch.cuda.is_available() else 'cpu'))    
+	model.load_pretrained(path_dir + '/model.pt', torch.device('cuda:' + str(config['cuda_id'] if cuda_id is None else cuda_id) if torch.cuda.is_available() else 'cpu'))    
 	return model
 
 def repurpose(X_repurpose, target, model, drug_names = None, target_name = None, 

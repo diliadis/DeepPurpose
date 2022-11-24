@@ -899,7 +899,7 @@ def generate_config(drug_encoding = None, target_encoding = None,
 		os.makedirs(base_config['result_folder'])
   
   
-	if performance_threshold != set():
+	if len(performance_threshold) != 0:
 		if False in [k in performance_threshold for k in ['metric_name', 'value', 'direction', 'max_epochs_allowed']]:
 			raise AttributeError('One of the following key-value pairs is missing from the performance_threshold dictionary: '+str(['metric_name', 'value', 'direction']))
 		if performance_threshold['direction'] not in ['max', 'min']:

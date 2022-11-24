@@ -14,7 +14,7 @@ import argparse
 
 def main(num_samples, cuda_id, num_workers):
     num_samples = int(num_samples)
-    wandb_project_name = 'DeepPurpose_repeat'
+    wandb_project_name = 'DeepPurpose_repeat_2'
     wandb_project_entity = 'diliadis'
     general_architecture_version = 'dot_product'
     X_drugs, X_targets, y = dataset.load_process_DAVIS(path = './data', binary = False, convert_to_log = True, threshold = 30)
