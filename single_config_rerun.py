@@ -8,20 +8,17 @@ from tqdm import tqdm
 import sys
 import warnings
 warnings.filterwarnings("ignore")
+import argparse
 
-
-def main(run_id):
-    
-    general_architecture_version = 'dot_product'
-    
-    wandb_project_name = 'DeepPurpose_repeat_2'
+def main(run_id, cuda_id, wandb_project_name, general_architecture_version):
+        
     wandb_project_entity = 'diliadis'
     
     # load the config of the requested run from wandb
     api = wandb.Api()
     run = api.run(path=wandb_project_entity+'/'+wandb_project_name+'/'+run_id)
     best_config = run.config
-    best_config['cuda_id'] = 0
+    best_config['cuda_id'] = cuda_id
     
     # load and split dataset
     X_drugs, X_targets, y = dataset.load_process_DAVIS(path = './data', binary = False, convert_to_log = True, threshold = 30) # http://staff.cs.utu.fi/~aatapa/data/DrugTarget/
@@ -69,5 +66,13 @@ def main(run_id):
     
     
 if __name__ == "__main__":
-    id = str(sys.argv[1])
-    main(id)
+    parser = argparse.ArgumentParser(description="DeepPurpose DTI example", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("--id", help="the wandb_id of the config to be trained")
+    parser.add_argument("--cuda_id", help="the id of the GPU that will be used for training")
+    parser.add_argument("--wandb_project_name", help="the project name where the config is stored")
+    parser.add_argument("--general_architecture_name", help="the type of the architecture that is tested [dot_product, mlp]")
+
+    args = parser.parse_args()
+    config = vars(args)
+    
+    main(config['id'], config['cuda_id'], config['wandb_project_name'], config['general_architecture_name'])
