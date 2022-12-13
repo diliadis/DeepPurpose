@@ -97,7 +97,6 @@ def main(num_samples, cuda_id, num_workers):
         print('testing the following config: '+str(temp_config))
         config = utils.generate_config(drug_encoding = drug_encoding, 
                                 target_encoding = target_encoding, 
-                                cls_hidden_dims = int(temp_config['cls_depth']) * [int(temp_config['cls_hidden_size'])], 
                                 train_epoch = 100, 
                                 LR = temp_config['learning_rate'], 
                                 batch_size = 256,
