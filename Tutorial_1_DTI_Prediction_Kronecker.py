@@ -111,7 +111,6 @@ def main(num_samples, cuda_id, num_workers):
                                 general_architecture_version = general_architecture_version,
                                 cuda_id=str(cuda_id),
                                 wandb_project_name = wandb_project_name,
-                                wandb_project_name = wandb_project_name,
                                 wandb_project_entity = wandb_project_entity,
                                 use_early_stopping = True,
 					            patience = 5,
