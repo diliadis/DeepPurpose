@@ -12,17 +12,27 @@ import random
 import argparse
 
 
-def main(num_samples, cuda_id, num_workers):
+def main(num_samples, val_setting, cuda_id, num_workers):
     num_samples = int(num_samples)
+    
+    split_method = 'random'
+    if str(val_setting) == 'B':
+        split_method = 'cold_drug'
+    elif str(val_setting) == 'C':
+        split_method = 'cold_protein'
+    elif str(val_setting) == 'A':
+        split_method = 'random'
+        
     wandb_project_name = 'DeepPurpose_repeat_2'
     wandb_project_entity = 'diliadis'
     general_architecture_version = 'dot_product'
+    
     X_drugs, X_targets, y = dataset.load_process_DAVIS(path = './data', binary = False, convert_to_log = True, threshold = 30)
     drug_encoding, target_encoding = 'MPNN', 'CNN'
     print('Processing the dataset...')
-    train, val, test = utils.data_process(X_drugs, X_targets, y, 
+    train, val, test = utils.data_process(X_drugs, X_targets, y,
                                 drug_encoding, target_encoding, 
-                                split_method='random',frac=[0.7,0.1,0.2],
+                                split_method=split_method,frac=[0.7,0.1,0.2],
                                 random_seed = 1)
     print('Done! ')
     
@@ -115,7 +125,8 @@ def main(num_samples, cuda_id, num_workers):
                                 delta = 0.001,
                                 metric_to_optimize_early_stopping = 'loss',
                                 num_workers=int(num_workers),
-                                performance_threshold = {'metric_name':'MSE', 'value': 1, 'direction': 'min', 'max_epochs_allowed': 30}
+                                performance_threshold = {'metric_name':'MSE', 'value': 1, 'direction': 'min', 'max_epochs_allowed': 30},
+                                validation_setting=val_setting
                                 )
 
         config['protein_mode_coverage'] = 'extended'
@@ -128,10 +139,11 @@ def main(num_samples, cuda_id, num_workers):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="DeepPurpose DTI example", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--num_configs", help="number of different configuration that will be trained and tested")
+    parser.add_argument("--val_setting", help="the validation setting that will be used to split the data")
     parser.add_argument("--cuda_id", help="the id of the GPU that will be used for training")
     parser.add_argument("--num_workers", help="the number of workers that will be used by the dataloaders")
 
     args = parser.parse_args()
     config = vars(args)
     
-    main(config['num_configs'], config['cuda_id'], config['num_workers'])
+    main(config['num_configs'], config['val_setting'], config['cuda_id'], config['num_workers'])
