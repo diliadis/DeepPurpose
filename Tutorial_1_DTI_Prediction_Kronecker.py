@@ -131,7 +131,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
 					            metric_to_optimize_early_stopping = 'loss',
                                 num_workers=int(num_workers),
                                 performance_threshold = {'metric_name':'MSE', 'value': performance_threshold, 'direction': 'min', 'max_epochs_allowed': 30},
-                                validation_setting=val_setting
+                                validation_setting=val_setting,
                                 dataset_name = dataset_name.upper()
                                 )
         config['protein_mode_coverage'] = 'extended'
