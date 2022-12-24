@@ -63,7 +63,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
     print(str(completed_param_combinations))
     for run in tqdm(runs):
         if run.state == "finished":
-            if run.config['general_architecture_version'] == general_architecture_version:
+            if ((run.config['general_architecture_version'] == general_architecture_version) and (run.config['dataset_name'] == dataset_name)):
                 for param_name in ranges_dict.keys():
                     if param_name == 'learning_rate':
                         completed_param_combinations[param_name].append(run.config['LR'])
@@ -79,6 +79,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                         # completed_param_combinations[param_name].append(run.config['cnn_target_kernels'][int(param_name.split('_')[-1])] if int(param_name.split('_')[-1]) < len(run.config['cnn_target_kernels']) else -1)
                     else:
                         completed_param_combinations[param_name].append(run.config[param_name][0] if isinstance(run.config[param_name], list) else run.config[param_name])
+                    
     # dataframe with configurations already tested and logged to wandb
     completed_param_combinations_df = pd.DataFrame(completed_param_combinations)
     print('completed configs df: '+str(completed_param_combinations_df))
