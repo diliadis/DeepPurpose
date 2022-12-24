@@ -867,7 +867,8 @@ def generate_config(drug_encoding = None, target_encoding = None,
 					metric_to_optimize_early_stopping = 'loss',
 					metric_to_optimize_best_epoch_selection = 'loss',
 					performance_threshold = {},
-					validation_setting = None
+					validation_setting = None,
+					dataset_name = '',
 					):
 
 	base_config = {'input_dim_drug': input_dim_drug,
@@ -895,6 +896,7 @@ def generate_config(drug_encoding = None, target_encoding = None,
 					'metric_to_optimize_early_stopping': metric_to_optimize_early_stopping,
 					'metric_to_optimize_best_epoch_selection': metric_to_optimize_best_epoch_selection,
 					'validation_setting': validation_setting,
+					'dataset_name': dataset_name,
 	}
 	if not os.path.exists(base_config['result_folder']):
 		os.makedirs(base_config['result_folder'])

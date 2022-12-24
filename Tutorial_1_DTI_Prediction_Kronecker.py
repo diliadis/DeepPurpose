@@ -12,7 +12,7 @@ import random
 import argparse
 
 
-def main(num_samples, val_setting, cuda_id, num_workers):
+def main(num_samples, val_setting, cuda_id, num_workers, dataset_name):
     num_samples = int(num_samples)
     
     split_method = 'random'
@@ -27,7 +27,13 @@ def main(num_samples, val_setting, cuda_id, num_workers):
     wandb_project_entity = 'diliadis'
     general_architecture_version = 'kronecker'
 
-    X_drugs, X_targets, y = dataset.load_process_DAVIS(path = './data', binary = False, convert_to_log = True, threshold = 30)
+    if dataset_name.lower() == 'davis':
+        X_drugs, X_targets, y = dataset.load_process_DAVIS(path = './data', binary = False, convert_to_log = True, threshold = 30)
+    elif dataset_name.lower() == 'kiba':
+        X_drugs, X_targets, y = dataset.load_process_KIBA(path = './data/', binary=False)
+    else:
+        raise AttributeError('invalid dataset name passed.')
+    
     drug_encoding, target_encoding = 'MPNN', 'CNN'
     print('Processing the dataset...')
     train, val, test = utils.data_process(X_drugs, X_targets, y, 
@@ -126,6 +132,7 @@ def main(num_samples, val_setting, cuda_id, num_workers):
                                 num_workers=int(num_workers),
                                 performance_threshold = {'metric_name':'MSE', 'value': 1, 'direction': 'min', 'max_epochs_allowed': 30},
                                 validation_setting=val_setting
+                                dataset_name = dataset_name.upper()
                                 )
         config['protein_mode_coverage'] = 'extended'
 
@@ -140,8 +147,9 @@ if __name__ == "__main__":
     parser.add_argument("--val_setting", help="the validation setting that will be used to split the data")
     parser.add_argument("--cuda_id", help="the id of the GPU that will be used for training")
     parser.add_argument("--num_workers", help="the number of workers that will be used by the dataloaders")
-
+    parser.add_argument("--dataset_name", help="the name of the dataset that will be used. (DAVIS and KIBA are the current valid options)")
+    
     args = parser.parse_args()
     config = vars(args)
     
-    main(config['num_configs'], config['val_setting'], config['cuda_id'], config['num_workers'])
+    main(config['num_configs'], config['val_setting'], config['cuda_id'], config['num_workers'], config['dataset_name'])
