@@ -12,7 +12,7 @@ import random
 import argparse
 
 
-def main(num_samples, val_setting, cuda_id, num_workers, dataset_name):
+def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performance_threshold=1.0):
     num_samples = int(num_samples)
     
     split_method = 'random'
@@ -139,7 +139,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name):
 					            delta = 0.001,
 					            metric_to_optimize_early_stopping = 'loss',
                                 num_workers=int(num_workers),
-                                performance_threshold = {'metric_name':'MSE', 'value': 1, 'direction': 'min', 'max_epochs_allowed': 30},
+                                performance_threshold = {'metric_name':'MSE', 'value': performance_threshold, 'direction': 'min', 'max_epochs_allowed': 30},
                                 validation_setting=val_setting,
                                 dataset_name = dataset_name.upper()
                                 )
@@ -157,8 +157,8 @@ if __name__ == "__main__":
     parser.add_argument("--cuda_id", help="the id of the GPU that will be used for training")
     parser.add_argument("--num_workers", help="the number of workers that will be used by the dataloaders")
     parser.add_argument("--dataset_name", help="the name of the dataset that will be used. (DAVIS and KIBA are the current valid options)")
-
+    parser.add_argument("--performance_threshold", help="performance threshold checked before epoch 30")
     args = parser.parse_args()
     config = vars(args)
     
-    main(config['num_configs'], config['val_setting'], config['cuda_id'], config['num_workers'], config['dataset_name'])
+    main(config['num_configs'], config['val_setting'], config['cuda_id'], config['num_workers'], config['dataset_name'], performance_threshold=float(config['performance_threshold']))
