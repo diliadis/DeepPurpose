@@ -12,7 +12,7 @@ import random
 import argparse
 
 
-def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performance_threshold=1.0):
+def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performance_threshold=1.0, wandb_dir='/scratch/gent/vo/000/gvo00048/vsc43483'):
     num_samples = int(num_samples)
     
     split_method = 'random'
@@ -126,10 +126,11 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                                 cuda_id=str(cuda_id),
                                 wandb_project_name = wandb_project_name,
                                 wandb_project_entity = wandb_project_entity,
+                                wandb_dir = wandb_dir,
                                 use_early_stopping = True,
                                 patience = 5,
                                 delta = 0.001,
-                                metric_to_optimize_early_stopping = 'loss',
+					            metric_to_optimize_early_stopping = 'loss',
                                 num_workers=int(num_workers),
                                 performance_threshold = {'metric_name':'MSE', 'value': performance_threshold, 'direction': 'min', 'max_epochs_allowed': 30},
                                 validation_setting=val_setting,

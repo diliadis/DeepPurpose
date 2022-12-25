@@ -457,7 +457,7 @@ class DBTA:
 
         # wandb logging
         if self.config['wandb_project_name'] is not None and self.config['wandb_project_entity'] is not None:
-            self.wandb_run = wandb.init(project=self.config['wandb_project_name'], entity=self.config['wandb_project_entity'], reinit=True)
+            self.wandb_run = wandb.init(project=self.config['wandb_project_name'], entity=self.config['wandb_project_entity'], dir=self.config['wandb_dir'], reinit=True)
             self.wandb_run.watch(self.model)
             self.wandb_run.config.update(self.config)
 
