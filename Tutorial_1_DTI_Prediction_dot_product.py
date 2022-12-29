@@ -23,7 +23,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
     elif str(val_setting) == 'A':
         split_method = 'random'
         
-    wandb_project_name = 'DeepPurpose_repeat_2'
+    wandb_project_name = 'DeepPurpose_final'
     wandb_project_entity = 'diliadis'
     general_architecture_version = 'dot_product'
     
@@ -47,7 +47,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         'learning_rate': [0.01, 0.001, 0.0001, 0.00001, 0.000001],
         'embedding_size': [4, 8, 16, 32, 64, 128, 256, 512],
         'mpnn_depth': [1, 2, 3],
-        
+        'mpnn_hidden_size'
         # 'hidden_dim_protein': [4, 8, 16, 32, 64, 128, 256, 512],
         'cnn_target_filters': [16, 32, 64, 128],
         'cnn_target_kernels': [4, 8, 12, 16],
@@ -128,7 +128,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                                 wandb_project_entity = wandb_project_entity,
                                 wandb_dir = wandb_dir,
                                 use_early_stopping = True,
-                                patience = 5,
+                                patience = 30,
                                 delta = 0.001,
 					            metric_to_optimize_early_stopping = 'loss',
                                 num_workers=int(num_workers),
