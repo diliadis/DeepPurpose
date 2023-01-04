@@ -89,8 +89,20 @@ class TwoBranchKroneckerModel(nn.Sequential):
 
         self.model_drug = model_drug
         self.model_protein = model_protein
-
-        self.comb_dim = self.model_drug[-1].out_features * self.model_protein[-1].out_features
+        
+        drug_output_dim, protein_output_dim = 0, 0
+        
+        if self.model_drug.__class__.__name__ == 'MLP':
+            drug_output_dim = self.model_drug[0][-1].out_features
+        else:
+            drug_output_dim = self.model_drug[-1].out_features
+            
+        if self.model_protein.__class__.__name__ == 'MLP':
+            protein_output_dim = self.model_protein[0][-1].out_features
+        else:
+            protein_output_dim = self.model_protein[-1].out_features
+        
+        self.comb_dim = drug_output_dim * protein_output_dim
         self.comb_branch = nn.Linear(self.comb_dim, 1)
 
     def forward(self, v_D, v_P):
