@@ -372,7 +372,7 @@ class DBTA:
         
         # create a custom folder for every experiment inside the resutls directory. This way, you don't have to lose your results every time you run an experiment.
         if config['experiment_name'] is None:
-            self.experiment_dir = self.result_folder+self.config['general_architecture_version']+'_'+datetime.now().strftime('%d_%m_%Y__%H_%M_%S')
+            self.experiment_dir = self.result_folder+self.config['general_architecture_version']+'_'+datetime.now().strftime('%d_%m_%Y__%H_%M_%S-%f')
             os.mkdir(self.experiment_dir)
         else:
             self.experiment_dir = self.result_folder+config['experiment_name']
