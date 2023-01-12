@@ -18,86 +18,87 @@ def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_n
     entity, source_project = 'diliadis', source_wandb_project_name  # set to your entity and project 
     source_runs = api.runs(entity + "/" + source_project)
 
-    for run in source_runs:
+    for run in tqdm(source_runs):
         # extract the max epoch the configuration achieved during training
         max_epoch = run.summary._json_dict['epoch']
         source_config = {k: v for k, v in run.config.items() if not k.startswith('_')}
         
-        file_lock = threading.Lock()
-        
-        print('Getting lock....')
-        file_lock.acquire()
-        print('Got it!!!')
-        # Open the file in read mode
-        print('Reading file...')
-        with open(update_file, "r") as f:
-            updates = f.read()
-        print('Done.')
-        
-        is_reserved = run.id in updates
-        
-        print(run.id+' is in '+updates+' : '+str(is_reserved)) 
-        
-        if max_epoch == 99 and (not is_reserved and source_config.get('reserved', False)):
+        if max_epoch == 99:
+
+            file_lock = threading.Lock()
             
-            with open(update_file, "a") as f:
-                # Write the current time to the file as an update
-                f.write(str(run.id)+"\n")
-            file_lock.release()
-        # if max_epoch == 99 and not source_config.get('reserved', False): # the config should be eligible for extension to more epochs and it should not be reserved by any other script that may be running at the same time
-           
-            run.config['reserved'] = True
-            run.update()
+            print('Getting lock....')
+            file_lock.acquire()
+            print('Got it!!!')
+            # Open the file in read mode
+            print('Reading file...')
+            with open(update_file, "r") as f:
+                updates = f.read()
+            print('Done.')
             
-            if source_config['validation_setting'] == 'B':
-                split_method = 'cold_drug'
-            if source_config['validation_setting'] == 'C':
-                split_method = 'cold_protein'
-            if source_config['validation_setting'] == 'A':
-                split_method = 'random'
+            is_reserved = run.id in updates
+            
+            print(run.id+' is in '+updates+' : '+str(is_reserved)) 
+            
+            if not is_reserved and source_config.get('reserved', False):
                 
-            dataset_name = source_config['dataset_name']
+                with open(update_file, "a") as f:
+                    # Write the current time to the file as an update
+                    f.write(str(run.id)+"\n")
+                file_lock.release()
+            # if max_epoch == 99 and not source_config.get('reserved', False): # the config should be eligible for extension to more epochs and it should not be reserved by any other script that may be running at the same time
             
-            if dataset_name.lower() == 'davis':
-                X_drugs, X_targets, y = dataset.load_process_DAVIS(path = './data', binary = False, convert_to_log = True, threshold = 30)
-            elif dataset_name.lower() == 'kiba':
-                X_drugs, X_targets, y = dataset.load_process_KIBA(path = './data/', binary=False)
-            else:
-                raise AttributeError('invalid dataset name passed.')
+                run.config['reserved'] = True
+                run.update()
+                
+                if source_config['validation_setting'] == 'B':
+                    split_method = 'cold_drug'
+                if source_config['validation_setting'] == 'C':
+                    split_method = 'cold_protein'
+                if source_config['validation_setting'] == 'A':
+                    split_method = 'random'
+                    
+                dataset_name = source_config['dataset_name']
+                
+                if dataset_name.lower() == 'davis':
+                    X_drugs, X_targets, y = dataset.load_process_DAVIS(path = './data', binary = False, convert_to_log = True, threshold = 30)
+                elif dataset_name.lower() == 'kiba':
+                    X_drugs, X_targets, y = dataset.load_process_KIBA(path = './data/', binary=False)
+                else:
+                    raise AttributeError('invalid dataset name passed.')
 
 
 
-            drug_encoding, target_encoding = source_config['drug_encoding'], source_config['target_encoding']
-            print('Processing the dataset...')
-            train, val, test = utils.data_process(X_drugs, X_targets, y,
-                                        drug_encoding, target_encoding, 
-                                        split_method=split_method,frac=[0.7,0.1,0.2],
-                                        random_seed = 1)
-            print('Done! ')
-        
-            config = utils.generate_config(drug_encoding = drug_encoding, 
-                                    target_encoding = target_encoding, 
-                                    train_epoch = 200, 
-                                    cuda_id=str(cuda_id),
-                                    wandb_project_name = target_wandb_project_name,
-                                    wandb_dir = wandb_dir,
-                                    num_workers=int(num_workers),
-                                    parent_wandb_id = run.id,
-            )
+                drug_encoding, target_encoding = source_config['drug_encoding'], source_config['target_encoding']
+                print('Processing the dataset...')
+                train, val, test = utils.data_process(X_drugs, X_targets, y,
+                                            drug_encoding, target_encoding, 
+                                            split_method=split_method,frac=[0.7,0.1,0.2],
+                                            random_seed = 1)
+                print('Done! ')
             
-            config.update({k: v for k,v in source_config.items() if k not in ['device', 'cuda_id', 'wandb_dir', 'num_workers', 'train_epoch', 'wandb_project_name']})
-            
-            model = models.model_initialize(**config)
-            print(str(model.model))
-            print(str(model.config))
-            model.train(train, val, test)
-        else:
-            if max_epoch != 99:
-                print('Not a config that needs to be extended')
+                config = utils.generate_config(drug_encoding = drug_encoding, 
+                                        target_encoding = target_encoding, 
+                                        train_epoch = 200, 
+                                        cuda_id=str(cuda_id),
+                                        wandb_project_name = target_wandb_project_name,
+                                        wandb_dir = wandb_dir,
+                                        num_workers=int(num_workers),
+                                        parent_wandb_id = run.id,
+                )
+                
+                config.update({k: v for k,v in source_config.items() if k not in ['device', 'cuda_id', 'wandb_dir', 'num_workers', 'train_epoch', 'wandb_project_name']})
+                
+                model = models.model_initialize(**config)
+                print(str(model.model))
+                print(str(model.config))
+                model.train(train, val, test)
             else:
                 print('source_config.get("reserved", False): '+str(source_config.get('reserved', False)))
                 print('is_reserved: '+str(is_reserved))
             
+        else:
+            print('Not a config that needs to be extended')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="DeepPurpose DTI example", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
