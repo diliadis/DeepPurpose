@@ -870,6 +870,8 @@ def generate_config(drug_encoding = None, target_encoding = None,
 					performance_threshold = {},
 					validation_setting = None,
 					dataset_name = '',
+					reserved = False,
+     				parent_wandb_id = None,
 					):
 
 	base_config = {'input_dim_drug': input_dim_drug,
@@ -899,6 +901,8 @@ def generate_config(drug_encoding = None, target_encoding = None,
 					'metric_to_optimize_best_epoch_selection': metric_to_optimize_best_epoch_selection,
 					'validation_setting': validation_setting,
 					'dataset_name': dataset_name,
+     				'reserved': reserved,
+					'parent_wandb_id' : parent_wandb_id,
 	}
 	if not os.path.exists(base_config['result_folder']):
 		os.makedirs(base_config['result_folder'])
