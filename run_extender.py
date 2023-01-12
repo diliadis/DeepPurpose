@@ -10,9 +10,10 @@ import sys
 warnings.filterwarnings("ignore")
 import random
 import argparse
+import threading
 
 def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_name, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483'):
-    
+    update_file = "reserved_wandb_ids.txt"
     api = wandb.Api()
     entity, source_project = 'diliadis', source_wandb_project_name  # set to your entity and project 
     source_runs = api.runs(entity + "/" + source_project)
@@ -22,7 +23,23 @@ def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_n
         max_epoch = run.summary._json_dict['epoch']
         source_config = {k: v for k, v in run.config.items() if not k.startswith('_')}
         
-        if max_epoch == 99 and not source_config.get('reserved', False): # the config should be eligible for extension to more epochs and it should not be reserved by any other script that may be running at the same time
+        file_lock = threading.Lock()
+        
+        file_lock.acquire()
+        # Open the file in read mode
+        with open(update_file, "r") as f:
+            updates = f.read()
+        
+        is_reserved = run.id in updates 
+        
+        if max_epoch == 99 and (not is_reserved and source_config.get('reserved', False)):
+            
+            with open(update_file, "a") as f:
+                # Write the current time to the file as an update
+                f.write(str(run.id)+"\n")
+            file_lock.release()
+        # if max_epoch == 99 and not source_config.get('reserved', False): # the config should be eligible for extension to more epochs and it should not be reserved by any other script that may be running at the same time
+           
             run.config['reserved'] = True
             run.update()
             
