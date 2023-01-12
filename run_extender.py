@@ -25,12 +25,18 @@ def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_n
         
         file_lock = threading.Lock()
         
+        print('Getting lock....')
         file_lock.acquire()
+        print('Got it!!!')
         # Open the file in read mode
+        print('Reading file...')
         with open(update_file, "r") as f:
             updates = f.read()
+        print('Done.')
         
-        is_reserved = run.id in updates 
+        is_reserved = run.id in updates
+        
+        print(run.id+' is in '+updates+' : '+str(is_reserved)) 
         
         if max_epoch == 99 and (not is_reserved and source_config.get('reserved', False)):
             
@@ -86,7 +92,11 @@ def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_n
             print(str(model.config))
             model.train(train, val, test)
         else:
-            print('This run is extended by another script... Moving to the next one')
+            if max_epoch != 99:
+                print('Not a config that needs to be extended')
+            else:
+                print('source_config.get("reserved", False): '+str(source_config.get('reserved', False)))
+                print('is_reserved: '+str(is_reserved))
             
 
 if __name__ == "__main__":
