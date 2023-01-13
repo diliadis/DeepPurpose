@@ -11,9 +11,21 @@ warnings.filterwarnings("ignore")
 import random
 import argparse
 import threading
+import os
 
 def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_name, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483'):
+    
     update_file = "reserved_wandb_ids.txt"
+
+    # check if the file exists
+    if not os.path.exists(update_file):
+        # create the file if it doesn't exist
+        open(update_file, "w").close()
+        print(f"{update_file} has been created.")
+    else:
+        print(f"{update_file} already exists.")
+    
+    
     api = wandb.Api()
     entity, source_project = 'diliadis', source_wandb_project_name  # set to your entity and project 
     source_runs = api.runs(entity + "/" + source_project)
