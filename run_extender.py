@@ -35,7 +35,7 @@ def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_n
         max_epoch = run.summary._json_dict['epoch']
         source_config = {k: v for k, v in run.config.items() if not k.startswith('_')}
         
-        print(run.id+': '+str(max_epoch)+', '+source_config.get('reserved')+' ) ==========================================================================================================')
+        print(run.id+': '+str(max_epoch)+', '+str(source_config.get('reserved'))+' ) ==========================================================================================================')
         
         if max_epoch == 99 and not source_config.get('reserved'):
 
