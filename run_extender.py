@@ -35,9 +35,9 @@ def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_n
         max_epoch = run.summary._json_dict['epoch']
         source_config = {k: v for k, v in run.config.items() if not k.startswith('_')}
         
-        print(run.id+': '+str(max_epoch)+' ) ==========================================================================================================')
+        print(run.id+': '+str(max_epoch)+', '+source_config.get('reserved')+' ) ==========================================================================================================')
         
-        if max_epoch == 99:
+        if max_epoch == 99 and not source_config.get('reserved'):
 
             file_lock = threading.Lock()
             
@@ -54,7 +54,7 @@ def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_n
             
             print(run.id+' is in '+updates+' : '+str(is_reserved)) 
             
-            if not is_reserved and source_config.get('reserved', False):
+            if not is_reserved:
                 
                 with open(update_file, "a") as f:
                     # Write the current time to the file as an update
@@ -108,8 +108,7 @@ def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_n
                 print(str(model.config))
                 model.train(train, val, test)
             else:
-                print('source_config.get("reserved", False): '+str(source_config.get('reserved', False)))
-                print('is_reserved: '+str(is_reserved))
+                print('This run is actually reserved in the .txt file... ')
             
         else:
             print('Not a config that needs to be extended')
