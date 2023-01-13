@@ -18,10 +18,12 @@ def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_n
     entity, source_project = 'diliadis', source_wandb_project_name  # set to your entity and project 
     source_runs = api.runs(entity + "/" + source_project)
 
-    for run in tqdm(source_runs):
+    for run in source_runs:
         # extract the max epoch the configuration achieved during training
         max_epoch = run.summary._json_dict['epoch']
         source_config = {k: v for k, v in run.config.items() if not k.startswith('_')}
+        
+        print(run.id+': '+str(max_epoch)+' ) ==========================================================================================================')
         
         if max_epoch == 99:
 
