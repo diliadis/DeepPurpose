@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from time import time
-from sklearn.metrics import mean_squared_error, roc_auc_score, average_precision_score, f1_score, log_loss
+from sklearn.metrics import mean_squared_error, roc_auc_score, average_precision_score, f1_score, log_loss, r2_score
 from lifelines.utils import concordance_index
 from scipy.stats import pearsonr
 import pickle 
@@ -435,7 +435,7 @@ class DBTA:
         else:
             if repurposing_mode:
                 return y_pred
-            return mean_squared_error(y_label, y_pred), pearsonr(y_label, y_pred)[0], pearsonr(y_label, y_pred)[1], concordance_index(y_label, y_pred), y_pred, loss
+            return mean_squared_error(y_label, y_pred), pearsonr(y_label, y_pred)[0], pearsonr(y_label, y_pred)[1], concordance_index(y_label, y_pred), r2_score(y_label, y_pred), y_pred, loss
 
     def train(self, train, val = None, test = None, verbose = True):
         if len(train.Label.unique()) == 2:
@@ -519,7 +519,7 @@ class DBTA:
         if self.binary:
             valid_metric_header.extend(["AUROC", "AUPRC", "F1"])
         else:
-            valid_metric_header.extend(["MSE", "Pearson Correlation", "with p-value", "Concordance Index"])
+            valid_metric_header.extend(["MSE", "Pearson Correlation", "with p-value", "Concordance Index", "R2"])
         table = PrettyTable(valid_metric_header)
         float2str = lambda x:'%0.4f'%x
         if verbose:
@@ -587,23 +587,24 @@ class DBTA:
 
                     else:  
                         ### regression: MSE, Pearson Correlation, with p-value, Concordance Index  
-                        mse, r2, p_val, CI, logits, loss_val = self.test_(validation_generator, self.model)
+                        mse, r2, p_val, CI, R2_score, logits, loss_val = self.test_(validation_generator, self.model)
                         lst = ["epoch " + str(epo)] + list(map(float2str,[mse, r2, p_val, CI]))
                         valid_metric_record.append(lst)
                         if mse < max_MSE:
                             model_max = copy.deepcopy(self.model)
                             max_MSE = mse
-                            best_val_metrics_dict = {'val_MSE': mse, 'val_pearson_correlation': r2, 'val_concordance_index': CI, 'val_loss': loss_val.item()}
+                            best_val_metrics_dict = {'val_MSE': mse, 'val_pearson_correlation': r2, 'val_concordance_index': CI, 'val_R2': R2_score, 'val_loss': loss_val.item()}
                         if verbose:
                             print('Validation at Epoch '+ str(epo + 1) + ' with loss:' + str(loss_val.item())[:7] +', MSE: ' + str(mse)[:7] + ' , Pearson Correlation: '\
                              + str(r2)[:7] + ' with p-value: ' + str(f"{p_val:.2E}") +' , Concordance Index: '+str(CI)[:7])
                             writer.add_scalar("valid/mse", mse, epo)
                             writer.add_scalar("valid/pearson_correlation", r2, epo)
                             writer.add_scalar("valid/concordance_index", CI, epo)
+                            writer.add_scalar("valid/R2", R2_score, epo)
                             writer.add_scalar("Loss/valid", loss_val.item(), iteration_loss)
 
                         if self.wandb_run is not None:
-                            self.wandb_run.log({'val_MSE': mse, 'val_pearson_correlation': r2, 'val_concordance_index': CI, 'epoch': epo})
+                            self.wandb_run.log({'val_MSE': mse, 'val_pearson_correlation': r2, 'val_concordance_index': CI, 'val_R2': R2_score, 'epoch': epo})
                             self.wandb_run.log({'val_loss': loss_val.item(), 'batch': iteration_loss})
                 table.add_row(lst)
             else:
@@ -612,7 +613,7 @@ class DBTA:
             
             # update early stopping and keep track of best model 
             self.early_stopping(
-                {'val_AUC': auc, 'val_AUPR': auprc, 'val_f1': f1, 'val_loss': loss} if self.binary else {'val_MSE': mse, 'val_pearson_correlation': r2, 'val_concordance_index': CI, 'val_loss': loss_val.item()},
+                {'val_AUC': auc, 'val_AUPR': auprc, 'val_f1': f1, 'val_loss': loss} if self.binary else {'val_MSE': mse, 'val_pearson_correlation': r2, 'val_concordance_index': CI, 'val_R2': R2_score, 'val_loss': loss_val.item()},
                 epo
             )
             if self.early_stopping.early_stop_flag and self.config['use_early_stopping']:
@@ -653,13 +654,13 @@ class DBTA:
                 if self.wandb_run is not None:
                     self.wandb_run.log({'test_AUC': auc, 'test_AUPR': auprc, 'test_f1': f1, 'test_loss': loss})			
             else:
-                mse, r2, p_val, CI, logits, loss_test = self.test_(testing_generator, model_max)
-                test_table = PrettyTable(["MSE", "Pearson Correlation", "with p-value", "Concordance Index"])
+                mse, r2, p_val, CI, R2_score, logits, loss_test = self.test_(testing_generator, model_max)
+                test_table = PrettyTable(["MSE", "Pearson Correlation", "with p-value", "Concordance Index", "R2"])
                 test_table.add_row(list(map(float2str, [mse, r2, p_val, CI])))
                 if verbose:
                     print('Testing MSE: ' + str(mse) + ' , Pearson Correlation: ' + str(r2) 
-                      + ' with p-value: ' + str(f"{p_val:.2E}") +' , Concordance Index: '+str(CI))
-                if self.wandb_run is not None: self.wandb_run.log({'test_MSE': mse, 'test_pearson_correlation': r2, 'test_concordance_index': CI})
+                      + ' with p-value: ' + str(f"{p_val:.2E}") +' , Concordance Index: '+str(CI)+' , R2: '+str(R2_score))
+                if self.wandb_run is not None: self.wandb_run.log({'test_MSE': mse, 'test_pearson_correlation': r2, 'test_concordance_index': CI, 'test_R2': R2_score})
                 
             np.save(os.path.join(self.experiment_dir, str(self.drug_encoding) + '_' + str(self.target_encoding) 
                      + '_logits.npy'), np.array(logits))                
