@@ -588,7 +588,7 @@ class DBTA:
                     else:  
                         ### regression: MSE, Pearson Correlation, with p-value, Concordance Index  
                         mse, r2, p_val, CI, R2_score, logits, loss_val = self.test_(validation_generator, self.model)
-                        lst = ["epoch " + str(epo)] + list(map(float2str,[mse, r2, p_val, CI]))
+                        lst = ["epoch " + str(epo)] + list(map(float2str,[mse, r2, p_val, CI, R2_score]))
                         valid_metric_record.append(lst)
                         if mse < max_MSE:
                             model_max = copy.deepcopy(self.model)
