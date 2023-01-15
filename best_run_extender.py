@@ -54,7 +54,7 @@ def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_n
     # Group the dataframe by the specified columns
     grouped = df.groupby(['general_architecture_version', 'dataset_name', 'validation_setting'])
     # Select the rows with the smallest 'best_val_loss' value from each group
-    result = grouped.apply(lambda x: x.nsmallest(1, 'best_val_loss'))
+    result = grouped.apply(lambda x: x.nsmallest(20, 'best_val_loss'))
     # Reset the index
     result.reset_index(drop=True, inplace=True)
 
