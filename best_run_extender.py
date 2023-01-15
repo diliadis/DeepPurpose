@@ -22,9 +22,9 @@ def reset_stuff(seed):
     np.random.seed(seed)
     random.seed(seed)
 
-def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_name, num_epochs, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483'):
+def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_name, reserved_run_ids_file_name, num_epochs, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483'):
     
-    update_file = "reserved_wandb_ids.txt"
+    update_file = reserved_run_ids_file_name+".txt"
 
     # check if the file exists
     if not os.path.exists(update_file):
@@ -153,9 +153,10 @@ if __name__ == "__main__":
     parser.add_argument("--num_epochs", help="max number of epochs allowed")
     parser.add_argument("--source_wandb_project_name", help="name of the source wandb project from which I will select configurations to extend")
     parser.add_argument("--target_wandb_project_name", help="name of the target wandb project where I will save the extended configurations")
+    parser.add_argument("--reserved_run_ids_file_name", help="name of file that wll be used to store reserved ids")
 
     args = parser.parse_args()
     config = vars(args)
     
-    main(config['cuda_id'], config['num_workers'], config['source_wandb_project_name'], config['target_wandb_project_name'], config['num_epochs'])
+    main(config['cuda_id'], config['num_workers'], config['source_wandb_project_name'], config['target_wandb_project_name'], config['reserved_run_ids_file_name'], config['num_epochs'])
 
