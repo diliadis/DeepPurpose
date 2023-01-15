@@ -656,7 +656,7 @@ class DBTA:
             else:
                 mse, r2, p_val, CI, R2_score, logits, loss_test = self.test_(testing_generator, model_max)
                 test_table = PrettyTable(["MSE", "Pearson Correlation", "with p-value", "Concordance Index", "R2"])
-                test_table.add_row(list(map(float2str, [mse, r2, p_val, CI])))
+                test_table.add_row(list(map(float2str, [mse, r2, p_val, CI, R2_score])))
                 if verbose:
                     print('Testing MSE: ' + str(mse) + ' , Pearson Correlation: ' + str(r2) 
                       + ' with p-value: ' + str(f"{p_val:.2E}") +' , Concordance Index: '+str(CI)+' , R2: '+str(R2_score))
