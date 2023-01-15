@@ -12,8 +12,17 @@ import random
 import argparse
 import threading
 import os
+import torch
 
-def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_name, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483'):
+def reset_stuff(seed):
+    # Seed
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+
+def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_name, num_epochs, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483'):
     
     update_file = "reserved_wandb_ids.txt"
 
@@ -59,8 +68,8 @@ def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_n
         
         print(run.id+': '+str(max_epoch)+', '+str(source_config.get('reserved'))+' ) ==========================================================================================================')
         
-        if max_epoch == 99 and not source_config.get('reserved'):
-
+        # if max_epoch == 99 and not source_config.get('reserved'):
+        if not source_config.get('reserved'):
             file_lock = threading.Lock()
             
             print('Getting lock....')
@@ -77,6 +86,8 @@ def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_n
             print(run.id+' is in '+updates+' : '+str(is_reserved)) 
             
             if not is_reserved:
+                
+                reset_stuff(1)
                 
                 with open(update_file, "a") as f:
                     # Write the current time to the file as an update
@@ -115,7 +126,7 @@ def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_n
             
                 config = utils.generate_config(drug_encoding = drug_encoding, 
                                         target_encoding = target_encoding, 
-                                        train_epoch = 200, 
+                                        train_epoch = int(num_epochs), 
                                         cuda_id=str(cuda_id),
                                         wandb_project_name = target_wandb_project_name,
                                         wandb_dir = wandb_dir,
@@ -139,11 +150,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="DeepPurpose DTI example", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--cuda_id", help="the id of the GPU that will be used for training")
     parser.add_argument("--num_workers", help="the number of workers that will be used by the dataloaders")
+    parser.add_argument("--num_epochs", help="max number of epochs allowed")
     parser.add_argument("--source_wandb_project_name", help="name of the source wandb project from which I will select configurations to extend")
     parser.add_argument("--target_wandb_project_name", help="name of the target wandb project where I will save the extended configurations")
 
     args = parser.parse_args()
     config = vars(args)
     
-    main(config['cuda_id'], config['num_workers'], config['source_wandb_project_name'], config['target_wandb_project_name'])
+    main(config['cuda_id'], config['num_workers'], config['source_wandb_project_name'], config['target_wandb_project_name'], config['num_epochs'])
 
