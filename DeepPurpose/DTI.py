@@ -294,7 +294,7 @@ class DBTA:
     '''
 
     def __init__(self, **config):
-        reset_stuff(1):
+        reset_stuff(1)
         drug_encoding = config['drug_encoding']
         target_encoding = config['target_encoding']
 
