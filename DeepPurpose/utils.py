@@ -875,7 +875,7 @@ def generate_config(drug_encoding = None, target_encoding = None,
 					validation_setting = None,
 					dataset_name = '',
 					reserved = False,
-     				parent_wandb_id = None,
+					 parent_wandb_id = None,
 					):
 
 	base_config = {'input_dim_drug': input_dim_drug,
@@ -905,7 +905,7 @@ def generate_config(drug_encoding = None, target_encoding = None,
 					'metric_to_optimize_best_epoch_selection': metric_to_optimize_best_epoch_selection,
 					'validation_setting': validation_setting,
 					'dataset_name': dataset_name,
-     				'reserved': reserved,
+					 'reserved': reserved,
 					'parent_wandb_id' : parent_wandb_id,
 	}
 	if not os.path.exists(base_config['result_folder']):
@@ -987,7 +987,7 @@ def generate_config(drug_encoding = None, target_encoding = None,
 		pass
 	elif drug_encoding == 'one-hot':
 		base_config['input_dim_drug'] = 68 if base_config['dataset_name'].lower() == 'davis' else 2068
-  		base_config['mlp_hidden_dims_drug'] = mlp_hidden_dims_drug # MLP classifier dim 1				
+		base_config['mlp_hidden_dims_drug'] = mlp_hidden_dims_drug # MLP classifier dim 1				
 	else:
 		raise AttributeError("Please use the correct drug encoding available!")
 
