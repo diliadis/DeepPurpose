@@ -987,7 +987,7 @@ def generate_config(drug_encoding = None, target_encoding = None,
 		pass
 	elif drug_encoding == 'one-hot':
 		base_config['input_dim_drug'] = 68 if base_config['dataset_name'].lower() == 'davis' else 2068
-	
+  		base_config['mlp_hidden_dims_drug'] = mlp_hidden_dims_drug # MLP classifier dim 1				
 	else:
 		raise AttributeError("Please use the correct drug encoding available!")
 
@@ -1029,6 +1029,7 @@ def generate_config(drug_encoding = None, target_encoding = None,
 		pass
 	elif drug_encoding == 'one-hot':
 		base_config['input_dim_protein'] = 379 if base_config['dataset_name'].lower() == 'davis' else 229
+		base_config['mlp_hidden_dims_target'] = mlp_hidden_dims_target # MLP classifier dim 1				
 	else:
 		raise AttributeError("Please use the correct protein encoding available!")
 
