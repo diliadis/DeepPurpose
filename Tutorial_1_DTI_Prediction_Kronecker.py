@@ -156,4 +156,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     config = vars(args)
     
-    main(config['num_configs'], config['val_setting'], config['cuda_id'], config['num_workers'], config['dataset_name'], performance_threshold=float(config['performance_threshold'], drug_encoding=config['drug_encoding'], target_encoding=config['target_encoding']))
+    main(config['num_configs'], config['val_setting'], config['cuda_id'], config['num_workers'], config['dataset_name'], performance_threshold=float(config['performance_threshold']), drug_encoding=config['drug_encoding'], target_encoding=config['target_encoding'])
