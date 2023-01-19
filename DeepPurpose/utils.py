@@ -401,6 +401,8 @@ def encode_drug(df_data, drug_encoding, column_name = 'SMILES', save_column_name
 		df_data[save_column_name] = df_data[column_name]
 	elif drug_encoding in ['DGL_GIN_AttrMasking', 'DGL_GIN_ContextPred']:
 		df_data[save_column_name] = df_data[column_name]
+	elif drug_encoding == 'one-hot':
+		df_data[save_column_name] = np.array(pd.get_dummies(df_data[column_name])).tolist()
 	else:
 		raise AttributeError("Please use the correct drug encoding available!")
 	return df_data
@@ -445,6 +447,8 @@ def encode_protein(df_data, target_encoding, column_name = 'Target Sequence', sa
 		AA = pd.Series(df_data[column_name].unique()).apply(protein2emb_encoder)
 		AA_dict = dict(zip(df_data[column_name].unique(), AA))
 		df_data[save_column_name] = [AA_dict[i] for i in df_data[column_name]]
+	elif target_encoding == 'one-hot':
+		df_data[save_column_name] = np.array(pd.get_dummies(df_data[column_name])).tolist()
 	else:
 		raise AttributeError("Please use the correct protein encoding available!")
 	return df_data
@@ -981,6 +985,9 @@ def generate_config(drug_encoding = None, target_encoding = None,
 		base_config['attentivefp_num_timesteps'] = attentivefp_num_timesteps
 	elif drug_encoding is None:
 		pass
+	elif drug_encoding == 'one-hot':
+		base_config['input_dim_drug'] = 68 if base_config['dataset_name'].lower() == 'davis' else 2068
+	
 	else:
 		raise AttributeError("Please use the correct drug encoding available!")
 
@@ -1020,6 +1027,8 @@ def generate_config(drug_encoding = None, target_encoding = None,
 		base_config['hidden_dim_protein'] = transformer_emb_size_target
 	elif target_encoding is None:
 		pass
+	elif drug_encoding == 'one-hot':
+		base_config['input_dim_protein'] = 379 if base_config['dataset_name'].lower() == 'davis' else 229
 	else:
 		raise AttributeError("Please use the correct protein encoding available!")
 
@@ -1588,3 +1597,7 @@ class EarlyStopping:
 			self.best_epoch = epoch
 			self.best_performance_results = performance_results
 			self.counter = 0
+   
+   
+   
+   

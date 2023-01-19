@@ -28,6 +28,7 @@ from DeepPurpose.encoders import *
 from torch.utils.tensorboard import SummaryWriter
 import wandb
 from DeepPurpose.utils import EarlyStopping
+import random
 
 class MLP_Classifier(nn.Sequential):
     def __init__(self, model_drug, model_protein, **config):
@@ -129,6 +130,16 @@ def model_pretrained(path_dir = None, model = None, temp_config=None, cuda_id=No
  
     model.load_pretrained(path_dir + '/model.pt', torch.device('cuda:' + str(config['cuda_id'] if cuda_id is None else cuda_id) if torch.cuda.is_available() else 'cpu'))    
     return model
+
+def reset_stuff(seed):
+    # Seed
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 def repurpose(X_repurpose, target, model, drug_names = None, target_name = None, 
               result_folder = "./result/", convert_y = False, output_num_max = 10, verbose = True):
@@ -283,6 +294,7 @@ class DBTA:
     '''
 
     def __init__(self, **config):
+        reset_stuff(1):
         drug_encoding = config['drug_encoding']
         target_encoding = config['target_encoding']
 
@@ -300,7 +312,7 @@ class DBTA:
         
         print('Using the following device: '+str(self.device))
 
-        if drug_encoding == 'Morgan' or drug_encoding == 'ErG' or drug_encoding=='Pubchem' or drug_encoding=='Daylight' or drug_encoding=='rdkit_2d_normalized' or drug_encoding == 'ESPF':
+        if drug_encoding == 'Morgan' or drug_encoding == 'ErG' or drug_encoding=='Pubchem' or drug_encoding=='Daylight' or drug_encoding=='rdkit_2d_normalized' or drug_encoding == 'ESPF' or drug_encoding == 'one-hot':
             # Future TODO: support multiple encoding scheme for static input 
             self.model_drug = MLP(config['input_dim_drug'], config['hidden_dim_drug'], config['mlp_hidden_dims_drug'], device = config['device'])
         elif drug_encoding == 'CNN':
@@ -341,7 +353,7 @@ class DBTA:
         else:
             raise AttributeError('Please use one of the available encoding method.')
 
-        if target_encoding == 'AAC' or target_encoding == 'PseudoAAC' or  target_encoding == 'Conjoint_triad' or target_encoding == 'Quasi-seq' or target_encoding == 'ESPF':
+        if target_encoding == 'AAC' or target_encoding == 'PseudoAAC' or  target_encoding == 'Conjoint_triad' or target_encoding == 'Quasi-seq' or target_encoding == 'ESPF' or drug_encoding == 'one-hot':
             self.model_protein = MLP(config['input_dim_protein'], config['hidden_dim_protein'], config['mlp_hidden_dims_target'], device = config['device'])
         elif target_encoding == 'CNN':
             self.model_protein = CNN('protein', **config)
