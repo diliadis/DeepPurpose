@@ -20,13 +20,25 @@ def main(run_id, cuda_id, wandb_project_name, general_architecture_version):
     best_config = run.config
     best_config['cuda_id'] = cuda_id
     
-    # load and split dataset
-    X_drugs, X_targets, y = dataset.load_process_DAVIS(path = './data', binary = False, convert_to_log = True, threshold = 30) # http://staff.cs.utu.fi/~aatapa/data/DrugTarget/
+    split_method = 'A'
+    if best_config['validation_setting'] == 'B':
+        split_method = 'cold_drug'
+    if best_config['validation_setting'] == 'C':
+        split_method = 'cold_protein'
+    if best_config['validation_setting'] == 'A':
+        split_method = 'random'
+    
+    if best_config['dataset_name'] == 'DAVIS':
+        # load and split dataset
+        X_drugs, X_targets, y = dataset.load_process_DAVIS(path = './data', binary = False, convert_to_log = True, threshold = 30) # http://staff.cs.utu.fi/~aatapa/data/DrugTarget/
+    else:
+        X_drugs, X_targets, y = dataset.load_process_KIBA(path = './data/', binary=False)
+        
     drug_encoding, target_encoding = best_config['drug_encoding'], best_config['target_encoding']
     print('Processing the dataset...')
     train, val, test = utils.data_process(X_drugs, X_targets, y, 
                                 drug_encoding, target_encoding, 
-                                split_method='random',frac=[0.7,0.1,0.2],
+                                split_method=split_method,frac=[0.7,0.1,0.2],
                                 random_seed = 1)
     print('Done! ')
     config = {}
@@ -55,6 +67,7 @@ def main(run_id, cuda_id, wandb_project_name, general_architecture_version):
                             experiment_name='best_'+general_architecture_version+'model',
                             )
     '''
+    config['parent_wandb_id'] = run.id
     # updating the dummy config with the dictionary loaded from wandb
     config.update(best_config)
     # initialize the model
