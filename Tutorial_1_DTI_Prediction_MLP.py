@@ -12,7 +12,7 @@ import random
 import argparse
 
 
-def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performance_threshold=1.0, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483'):
+def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performance_threshold=1.0, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483', drug_encoding='one-hot', target_encoding='one-hot'):
     num_samples = int(num_samples)
     
     split_method = 'random'
@@ -34,7 +34,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
     else:
         raise AttributeError('invalid dataset name passed.')
     
-    drug_encoding, target_encoding = 'one-hot', 'one-hot'
+    # drug_encoding, target_encoding = 'one-hot', 'one-hot'
     print('Processing the dataset...')
     train, val, test = utils.data_process(X_drugs, X_targets, y,
                                 drug_encoding, target_encoding, 
@@ -159,56 +159,10 @@ if __name__ == "__main__":
     parser.add_argument("--num_workers", help="the number of workers that will be used by the dataloaders")
     parser.add_argument("--dataset_name", help="the name of the dataset that will be used. (DAVIS and KIBA are the current valid options)")
     parser.add_argument("--performance_threshold", help="performance threshold checked before epoch 30")
+    parser.add_argument("--drug_encoding", help="drug encoder name")
+    parser.add_argument("--target_encoding", help="target encoder name")    
+
     args = parser.parse_args()
     config = vars(args)
     
-    main(config['num_configs'], config['val_setting'], config['cuda_id'], config['num_workers'], config['dataset_name'], performance_threshold=float(config['performance_threshold']))
-    
-    
-    
-    
-    
-    
-    
-
-
-class BaseDataset(Dataset):    # pragma: no cover
-    """A custom pytorch Dataset with a flexible implementation that can handle different cases of instance and target features. 
-       The speed of this could be improved by splitting this logic into multiple datasets designed for specific cases. 
-    """    
-    def __init__(self, config, data, instance_features, target_features, instance_transform=None, target_transform=None):
-        self.triplet_data = data['data']
-        self.instance_features = instance_features['data'] if instance_features is not None else None
-        self.target_features = target_features['data'] if target_features is not None else None
-        self.instance_transform = instance_transform
-        self.target_transform = target_transform
-
-        self.instance_branch_input_dim = config['instance_branch_input_dim']
-        self.target_branch_input_dim = config['target_branch_input_dim']
-
-        self.use_instance_features = config['use_instance_features']
-        self.use_target_features = config['use_target_features']
-
-    def __len__(self):
-        return len(self.triplet_data)
-
-    def __getitem__(self, idx): 
-        row = self.triplet_data.loc[idx]
-        instance_id = int(row['instance_id'])
-        target_id = int(row['target_id'])
-        value = row['value']
-        instance_features_vec = None
-        target_features_vec = None
-
-        if self.instance_features is not None:
-            if self.config['instance_branch_architecture'] == 'CONV':
-                image = Image.open(self.instance_features.loc[instance_id, 'dir']).convert('RGB')
-                instance_features_vec = self.instance_transform(image)
-            else:
-                instance_features_vec = self.instance_features.loc[instance_id, 'features']
-        else:
-            instance_features_vec = np.zeros(self.instance_branch_input_dim, dtype=np.float32)
-            instance_features_vec[instance_id] = 1
-
-        if self.target_features is not None:
-            if self
+    main(config['num_configs'], config['val_setting'], config['cuda_id'], config['num_workers'], config['dataset_name'], performance_threshold=float(config['performance_threshold'], drug_encoding=config['drug_encoding'], target_encoding=config['target_encoding']))

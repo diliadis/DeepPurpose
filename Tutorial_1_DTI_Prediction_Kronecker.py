@@ -12,7 +12,7 @@ import random
 import argparse
 
 
-def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performance_threshold=1.0, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483'):
+def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performance_threshold=1.0, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483', drug_encoding='one-hot', target_encoding='one-hot'):
     num_samples = int(num_samples)
     
     split_method = 'random'
@@ -34,7 +34,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
     else:
         raise AttributeError('invalid dataset name passed.')
     
-    drug_encoding, target_encoding = 'one-hot', 'one-hot'
+    # drug_encoding, target_encoding = 'one-hot', 'one-hot'
     print('Processing the dataset...')
     train, val, test = utils.data_process(X_drugs, X_targets, y, 
                                 drug_encoding, target_encoding, 
@@ -150,7 +150,10 @@ if __name__ == "__main__":
     parser.add_argument("--num_workers", help="the number of workers that will be used by the dataloaders")
     parser.add_argument("--dataset_name", help="the name of the dataset that will be used. (DAVIS and KIBA are the current valid options)")
     parser.add_argument("--performance_threshold", help="performance threshold checked before epoch 30")
+    parser.add_argument("--drug_encoding", help="drug encoder name")
+    parser.add_argument("--target_encoding", help="target encoder name")    
+
     args = parser.parse_args()
     config = vars(args)
     
-    main(config['num_configs'], config['val_setting'], config['cuda_id'], config['num_workers'], config['dataset_name'], performance_threshold=float(config['performance_threshold']))
+    main(config['num_configs'], config['val_setting'], config['cuda_id'], config['num_workers'], config['dataset_name'], performance_threshold=float(config['performance_threshold'], drug_encoding=config['drug_encoding'], target_encoding=config['target_encoding']))
