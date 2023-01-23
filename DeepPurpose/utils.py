@@ -351,7 +351,7 @@ def create_fold_setting_cold_drug(df, fold_seed, frac):
 	return train, val, test
 
 
-def encode_drug(df_data, drug_encoding, column_name = 'SMILES', save_column_name = 'drug_encoding'):
+def encode_drug(df_data, drug_encoding, column_name = 'SMILES', save_column_name = 'drug_encoding', explicit_plus_one_hot_drug_features_mode=False):
 	print('encoding drug...')
 	print('unique drugs: ' + str(len(df_data[column_name].unique())))
 	if drug_encoding == 'Morgan':
@@ -405,9 +405,13 @@ def encode_drug(df_data, drug_encoding, column_name = 'SMILES', save_column_name
 		df_data[save_column_name] = list(np.array(pd.get_dummies(df_data[column_name])).astype(np.float64))
 	else:
 		raise AttributeError("Please use the correct drug encoding available!")
+
+	if explicit_plus_one_hot_drug_features_mode:
+		df_data[save_column_name+'_one_hot'] = list(np.array(pd.get_dummies(df_data[column_name])).astype(np.float64))
+
 	return df_data
 
-def encode_protein(df_data, target_encoding, column_name = 'Target Sequence', save_column_name = 'target_encoding'):
+def encode_protein(df_data, target_encoding, column_name = 'Target Sequence', save_column_name = 'target_encoding', explicit_plus_one_hot_protein_features_mode=False):
 	print('encoding protein...')
 	print('unique target sequence: ' + str(len(df_data[column_name].unique())))
 	if target_encoding == 'AAC':
@@ -451,10 +455,14 @@ def encode_protein(df_data, target_encoding, column_name = 'Target Sequence', sa
 		df_data[save_column_name] = list(np.array(pd.get_dummies(df_data[column_name])).astype(np.float64))
 	else:
 		raise AttributeError("Please use the correct protein encoding available!")
+
+	if explicit_plus_one_hot_protein_features_mode:
+		df_data[save_column_name+'_one_hot'] = list(np.array(pd.get_dummies(df_data[column_name])).astype(np.float64))
+
 	return df_data
 
 def data_process(X_drug = None, X_target = None, y=None, drug_encoding=None, target_encoding=None, 
-				 split_method = 'random', frac = [0.7, 0.1, 0.2], random_seed = 1, sample_frac = 1, mode = 'DTI', X_drug_ = None, X_target_ = None):
+				 split_method = 'random', frac = [0.7, 0.1, 0.2], random_seed = 1, sample_frac = 1, mode = 'DTI', X_drug_ = None, X_target_ = None, explicit_plus_one_hot_drug_features_mode = False, explicit_plus_one_hot_protein_features_mode = False):
 	
 	if random_seed == 'TDC':
 		random_seed = 1234
@@ -537,18 +545,18 @@ def data_process(X_drug = None, X_target = None, y=None, drug_encoding=None, tar
 		print('after subsample: ' + str(len(df_data)) + ' data points...') 
 
 	if DTI_flag:
-		df_data = encode_drug(df_data, drug_encoding)
-		df_data = encode_protein(df_data, target_encoding)
+		df_data = encode_drug(df_data, drug_encoding, explicit_plus_one_hot_drug_features_mode = explicit_plus_one_hot_drug_features_mode)
+		df_data = encode_protein(df_data, target_encoding, explicit_plus_one_hot_protein_features_mode = explicit_plus_one_hot_protein_features_mode)
 	elif DDI_flag:
-		df_data = encode_drug(df_data, drug_encoding, 'SMILES 1', 'drug_encoding_1')
-		df_data = encode_drug(df_data, drug_encoding, 'SMILES 2', 'drug_encoding_2')
+		df_data = encode_drug(df_data, drug_encoding, 'SMILES 1', 'drug_encoding_1', explicit_plus_one_hot_drug_features_mode = explicit_plus_one_hot_drug_features_mode)
+		df_data = encode_drug(df_data, drug_encoding, 'SMILES 2', 'drug_encoding_2', explicit_plus_one_hot_protein_features_mode = explicit_plus_one_hot_protein_features_mode)
 	elif PPI_flag:
-		df_data = encode_protein(df_data, target_encoding, 'Target Sequence 1', 'target_encoding_1')
-		df_data = encode_protein(df_data, target_encoding, 'Target Sequence 2', 'target_encoding_2')
+		df_data = encode_protein(df_data, target_encoding, 'Target Sequence 1', 'target_encoding_1', explicit_plus_one_hot_drug_features_mode = explicit_plus_one_hot_drug_features_mode)
+		df_data = encode_protein(df_data, target_encoding, 'Target Sequence 2', 'target_encoding_2', explicit_plus_one_hot_protein_features_mode = explicit_plus_one_hot_protein_features_mode)
 	elif property_prediction_flag:
-		df_data = encode_drug(df_data, drug_encoding)
+		df_data = encode_drug(df_data, drug_encoding, explicit_plus_one_hot_drug_features_mode = explicit_plus_one_hot_drug_features_mode)
 	elif function_prediction_flag:
-		df_data = encode_protein(df_data, target_encoding)
+		df_data = encode_protein(df_data, target_encoding, explicit_plus_one_hot_protein_features_mode = explicit_plus_one_hot_protein_features_mode)
 
 	# dti split
 	if DTI_flag:
@@ -657,6 +665,9 @@ class data_process_loader(data.Dataset):
 	def __getitem__(self, index):
 		'Generates one sample of data'
 		index = self.list_IDs[index]
+  
+		v_d_hot, v_p_hot = None, None
+  
 		v_d = self.df.iloc[index]['drug_encoding']        
 		if self.config['drug_encoding'] == 'CNN' or self.config['drug_encoding'] == 'CNN_RNN':
 			v_d = drug_2_embed(v_d)
@@ -665,8 +676,23 @@ class data_process_loader(data.Dataset):
 		v_p = self.df.iloc[index]['target_encoding']
 		if self.config['target_encoding'] == 'CNN' or self.config['target_encoding'] == 'CNN_RNN':
 			v_p = protein_2_embed(v_p)
+   
+		if 'drug_encoding_one_hot' in self.df.columns:
+			v_d_hot = self.df.iloc[index]['drug_encoding_one_hot'] 
+
+		if 'target_encoding_one_hot' in self.df.columns:
+			v_p_hot = self.df.iloc[index]['target_encoding_one_hot']
+   
 		y = self.labels[index]
-		return v_d, v_p, y
+
+		if v_d_hot is not None and v_p_hot is not None:
+			return (v_d, v_d_hot), (v_p, v_p_hot), y
+		elif v_d_hot is None and v_p_hot is not None:
+			return v_d, (v_p, v_p_hot), y
+		elif v_d_hot is not None and v_p_hot is None:
+			return (v_d, v_d_hot), v_p, y
+		else:
+			return v_d, v_p, y
 
 
 class data_process_DDI_loader(data.Dataset):
@@ -716,6 +742,7 @@ class data_process_DDI_loader(data.Dataset):
 		elif self.config['drug_encoding'] in ['DGL_GCN', 'DGL_NeuralFP', 'DGL_GIN_AttrMasking', 'DGL_GIN_ContextPred', 'DGL_AttentiveFP']:
 			v_p = self.fc(smiles = v_p, node_featurizer = self.node_featurizer, edge_featurizer = self.edge_featurizer)
 		y = self.labels[index]
+  
 		return v_d, v_p, y
 
 
@@ -875,7 +902,15 @@ def generate_config(drug_encoding = None, target_encoding = None,
 					validation_setting = None,
 					dataset_name = '',
 					reserved = False,
-					 parent_wandb_id = None,
+					parent_wandb_id = None,
+					explicit_plus_one_hot_drug_features_mode = False,
+					explicit_plus_one_hot_protein_features_mode = False,
+					# num_drugs = None,
+					# num_proteins = None,
+					hidden_dim_drug_one_hot = 256,
+					hidden_dim_protein_one_hot = 256,
+					mlp_hidden_dims_drug_one_hot = [1024, 256, 64],
+					mlp_hidden_dims_protein_one_hot = [1024, 256, 64],
 					):
 
 	base_config = {'input_dim_drug': input_dim_drug,
@@ -905,12 +940,20 @@ def generate_config(drug_encoding = None, target_encoding = None,
 					'metric_to_optimize_best_epoch_selection': metric_to_optimize_best_epoch_selection,
 					'validation_setting': validation_setting,
 					'dataset_name': dataset_name,
-					 'reserved': reserved,
+					'reserved': reserved,
 					'parent_wandb_id' : parent_wandb_id,
+					'explicit_plus_one_hot_drug_features_mode': explicit_plus_one_hot_drug_features_mode,
+					'explicit_plus_one_hot_protein_features_mode': explicit_plus_one_hot_protein_features_mode,
 	}
 	if not os.path.exists(base_config['result_folder']):
 		os.makedirs(base_config['result_folder'])
   
+	if base_config['dataset_name'] == 'DAVIS':
+		base_config['num_drugs'], base_config['num_proteins'] = 68, 379
+	elif base_config['dataset_name'] == 'KIBA':
+		base_config['num_drugs'], base_config['num_proteins'] = 2068, 229
+	else:
+		raise AttributeError('Unknown dataset name passed.')
   
 	if len(performance_threshold) != 0:
 		if False in [k in performance_threshold for k in ['metric_name', 'value', 'direction', 'max_epochs_allowed']]:
@@ -918,6 +961,15 @@ def generate_config(drug_encoding = None, target_encoding = None,
 		if performance_threshold['direction'] not in ['max', 'min']:
 			raise AttributeError('The direction key in the performance_threshold dictionary has an invalid value instead of max or min')
 		base_config['performance_threshold'] = performance_threshold	
+  
+  
+	if explicit_plus_one_hot_drug_features_mode:
+		base_config['hidden_dim_drug_one_hot'] = hidden_dim_drug_one_hot
+		base_config['mlp_hidden_dims_drug_one_hot'] = mlp_hidden_dims_drug_one_hot
+  
+	if explicit_plus_one_hot_protein_features_mode:
+		base_config['hidden_dim_protein_one_hot'] = hidden_dim_protein_one_hot
+		base_config['mlp_hidden_dims_protein_one_hot'] = mlp_hidden_dims_protein_one_hot
 
 	if drug_encoding == 'Morgan':
 		base_config['mlp_hidden_dims_drug'] = mlp_hidden_dims_drug # MLP classifier dim 1				
@@ -1027,7 +1079,7 @@ def generate_config(drug_encoding = None, target_encoding = None,
 		base_config['hidden_dim_protein'] = transformer_emb_size_target
 	elif target_encoding is None:
 		pass
-	elif drug_encoding == 'one-hot':
+	elif target_encoding == 'one-hot':
 		base_config['input_dim_protein'] = 379 if base_config['dataset_name'].lower() == 'davis' else 229
 		base_config['mlp_hidden_dims_target'] = mlp_hidden_dims_target # MLP classifier dim 1				
 	else:

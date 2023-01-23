@@ -30,27 +30,49 @@ import wandb
 from DeepPurpose.utils import EarlyStopping
 import random
 
-class MLP_Classifier(nn.Sequential):
-    def __init__(self, model_drug, model_protein, **config):
-        super(MLP_Classifier, self).__init__()
-        self.input_dim_drug = config['hidden_dim_drug']
-        self.input_dim_protein = config['hidden_dim_protein']
+class TwoBranchMLPModel(nn.Sequential):
+    def __init__(self, model_drug, model_protein, parent_mode=True, suffix='', **config):
+        super(TwoBranchMLPModel, self).__init__()
+        
+        if parent_mode:
+            if config['explicit_plus_one_hot_drug_features_mode']:
+                self.input_dim_drug = config['mlp_hidden_dims_drug_one_hot'][-1]
+                self.input_dim_protein = config['mlp_hidden_dims_protein_one_hot'][-1]            
+            else:
+                self.input_dim_drug = config['hidden_dim_drug']
+                self.input_dim_protein = config['hidden_dim_protein']
+        else:
+            if config['explicit_plus_one_hot_'+suffix+'_features_mode']:
+                self.input_dim_drug = config['hidden_dim_'+suffix]
+                self.input_dim_protein = config['hidden_dim_'+suffix+'_one_hot']
+            else:
+                self.input_dim_drug = config['hidden_dim_drug']
+                self.input_dim_protein = config['hidden_dim_protein']
 
         self.model_drug = model_drug
         self.model_protein = model_protein
 
         self.dropout = nn.Dropout(0.1)
-
-        self.hidden_dims = config['cls_hidden_dims']
-        layer_size = len(self.hidden_dims) + 1
-        dims = [self.input_dim_drug + self.input_dim_protein] + self.hidden_dims + [1]
         
+        if parent_mode:
+            self.hidden_dims = config['cls_hidden_dims']
+        else:
+            self.hidden_dims = config['mlp_hidden_dims_'+suffix+'_one_hot']
+            
+        layer_size = len(self.hidden_dims)
+        
+        dims = [self.input_dim_drug + self.input_dim_protein] + self.hidden_dims
+        
+        if parent_mode:
+            dims.append(1)
+            layer_size += 1
+            
         self.predictor = nn.ModuleList([nn.Linear(dims[i], dims[i+1]) for i in range(layer_size)])
 
     def forward(self, v_D, v_P):
-        # each encoding
-        v_D = self.model_drug(v_D)
-        v_P = self.model_protein(v_P)
+        # each encoding        
+        v_D = self.model_drug(*v_D) if isinstance(v_D, list) else self.model_drug(v_D)
+        v_P = self.model_protein(*v_P) if isinstance(v_P, list) else self.model_protein(v_P)
 
         # concatenate and classify
         v_f = torch.cat((v_D, v_P), 1)
@@ -58,7 +80,8 @@ class MLP_Classifier(nn.Sequential):
             if i==(len(self.predictor)-1):
                 v_f = l(v_f)
             else:
-                v_f = F.relu(self.dropout(l(v_f)))
+                # v_f = F.relu(self.dropout(l(v_f)))
+                v_f = F.relu(l(v_f))
         return v_f
 
 class TwoBranchDotProductModel(nn.Sequential):
@@ -353,7 +376,7 @@ class DBTA:
         else:
             raise AttributeError('Please use one of the available encoding method.')
 
-        if target_encoding == 'AAC' or target_encoding == 'PseudoAAC' or  target_encoding == 'Conjoint_triad' or target_encoding == 'Quasi-seq' or target_encoding == 'ESPF' or drug_encoding == 'one-hot':
+        if target_encoding == 'AAC' or target_encoding == 'PseudoAAC' or  target_encoding == 'Conjoint_triad' or target_encoding == 'Quasi-seq' or target_encoding == 'ESPF' or target_encoding == 'one-hot':
             self.model_protein = MLP(config['input_dim_protein'], config['hidden_dim_protein'], config['mlp_hidden_dims_target'], device = config['device'])
         elif target_encoding == 'CNN':
             self.model_protein = CNN('protein', **config)
@@ -364,9 +387,16 @@ class DBTA:
         else:
             raise AttributeError('Please use one of the available encoding method.')
         
+        
+        if config['explicit_plus_one_hot_drug_features_mode']:
+            self.model_drug = TwoBranchMLPModel(self.model_drug, MLP(config['num_drugs'], config['hidden_dim_drug_one_hot'], [config['hidden_dim_drug_one_hot']], device=config['device']), suffix='drug', parent_mode=False, **config)
+        if config['explicit_plus_one_hot_protein_features_mode']:
+            self.model_protein = TwoBranchMLPModel(self.model_protein, MLP(config['num_proteins'], config['hidden_dim_protein_one_hot'], [config['hidden_dim_protein_one_hot']], device=config['device']), suffix='protein', parent_mode=False, **config)
+        
+        
         if config['general_architecture_version'] == 'mlp':
             print('Using the MLP version of the architecture...')
-            self.model = MLP_Classifier(self.model_drug, self.model_protein, **config)
+            self.model = TwoBranchMLPModel(self.model_drug, self.model_protein, **config)
         elif config['general_architecture_version'] == 'dot_product':
             print('Using the dot product version of the architecture...')
             self.model = TwoBranchDotProductModel(self.model_drug, self.model_protein, **config)
@@ -412,11 +442,21 @@ class DBTA:
             if self.drug_encoding in ["MPNN", 'Transformer', 'DGL_GCN', 'DGL_NeuralFP', 'DGL_GIN_AttrMasking', 'DGL_GIN_ContextPred', 'DGL_AttentiveFP']:
                 v_d = v_d
             else:
-                v_d = v_d.float().to(self.device)                
+                if isinstance(v_d, list):
+                    v_d[0] = v_d[0].float().to(self.device)
+                    v_d[1] = v_d[1].float().to(self.device)
+                else:    
+                    v_d = v_d.float().to(self.device)         
+                           
             if self.target_encoding == 'Transformer':
                 v_p = v_p
             else:
-                v_p = v_p.float().to(self.device)                
+                if isinstance(v_p, list):
+                    v_p[0] = v_p[0].float().to(self.device)
+                    v_p[1] = v_p[1].float().to(self.device)                                
+                else:
+                    v_p = v_p.float().to(self.device)       
+         
             score = self.model(v_d, v_p)
             if self.binary:
                 m = torch.nn.Sigmoid()
@@ -544,11 +584,20 @@ class DBTA:
                 if self.target_encoding == 'Transformer':
                     v_p = v_p
                 else:
-                    v_p = v_p.float().to(self.device) 
+                    if isinstance(v_p, list):
+                        v_p[0] = v_p[0].float().to(self.device)
+                        v_p[1] = v_p[1].float().to(self.device)
+                    else:    
+                        v_p = v_p.float().to(self.device) 
+                        
                 if self.drug_encoding in ["MPNN", 'Transformer', 'DGL_GCN', 'DGL_NeuralFP', 'DGL_GIN_AttrMasking', 'DGL_GIN_ContextPred', 'DGL_AttentiveFP']:
                     v_d = v_d
                 else:
-                    v_d = v_d.float().to(self.device)                
+                    if isinstance(v_d, list):
+                        v_d[0] = v_d[0].float().to(self.device)
+                        v_d[1] = v_d[1].float().to(self.device)
+                    else:    
+                        v_d = v_d.float().to(self.device)                
                     #score = self.model(v_d, v_p.float().to(self.device))
                 score = self.model(v_d, v_p)
                 label = Variable(torch.from_numpy(np.array(label)).float()).to(self.device)
