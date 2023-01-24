@@ -1,8 +1,3 @@
-import os
-aff = os.sched_getaffinity(0)
-
-print(aff)
-
 from DeepPurpose import utils, dataset
 from DeepPurpose import DTI as models
 from DeepPurpose.utils import *
