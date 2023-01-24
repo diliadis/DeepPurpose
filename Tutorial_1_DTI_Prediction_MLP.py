@@ -171,7 +171,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                 (completed_param_combinations_df['hidden_dim_protein_one_hot'] == temp_config['hidden_dim_protein_one_hot']) & 
                 
                 (completed_param_combinations_df['hidden_dim_drug_child'] == temp_config['hidden_dim_drug_child']) & 
-                (completed_param_combinations_df['hidden_dim_protein_child'] == temp_config['hidden_dim_protein_child']) & 
+                (completed_param_combinations_df['hidden_dim_protein_child'] == temp_config['hidden_dim_protein_child'])
 
             ].empty:
                 completed_param_combinations_df = completed_param_combinations_df.append(temp_config, ignore_index=True)
