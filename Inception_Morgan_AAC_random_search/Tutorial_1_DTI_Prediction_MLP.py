@@ -39,7 +39,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
     train, val, test = utils.data_process(X_drugs, X_targets, y,
                                 drug_encoding, target_encoding, 
                                 split_method=split_method,frac=[0.7,0.1,0.2],
-                                random_seed = 1
+                                random_seed = 1,
                                 explicit_plus_one_hot_drug_features_mode = True,
      				            explicit_plus_one_hot_protein_features_mode = True,
                                 )
