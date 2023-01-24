@@ -153,25 +153,25 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                 (completed_param_combinations_df['mlp_drug_depth'] == temp_config['mlp_drug_depth']) & 
                 (completed_param_combinations_df['mlp_drug_nodes_per_layer'] == temp_config['mlp_drug_nodes_per_layer']) &
                 (completed_param_combinations_df['mlp_target_depth'] == temp_config['mlp_target_depth']) & 
-                (completed_param_combinations_df['mlp_target_nodes_per_layer'] == temp_config['mlp_target_nodes_per_layer'])
+                (completed_param_combinations_df['mlp_target_nodes_per_layer'] == temp_config['mlp_target_nodes_per_layer']) & 
                 
-                (completed_param_combinations_df['mlp_drug_depth_one_hot'] == temp_config['mlp_drug_depth_one_hot'])
-                (completed_param_combinations_df['mlp_drug_nodes_per_layer_one_hot'] == temp_config['mlp_drug_nodes_per_layer_one_hot'])
+                (completed_param_combinations_df['mlp_drug_depth_one_hot'] == temp_config['mlp_drug_depth_one_hot']) & 
+                (completed_param_combinations_df['mlp_drug_nodes_per_layer_one_hot'] == temp_config['mlp_drug_nodes_per_layer_one_hot']) & 
 
-                (completed_param_combinations_df['mlp_protein_depth_one_hot'] == temp_config['mlp_protein_depth_one_hot'])
-                (completed_param_combinations_df['mlp_protein_nodes_per_layer_one_hot'] == temp_config['mlp_protein_nodes_per_layer_one_hot'])
+                (completed_param_combinations_df['mlp_protein_depth_one_hot'] == temp_config['mlp_protein_depth_one_hot']) & 
+                (completed_param_combinations_df['mlp_protein_nodes_per_layer_one_hot'] == temp_config['mlp_protein_nodes_per_layer_one_hot']) & 
 
-                (completed_param_combinations_df['cls_drug_depth'] == temp_config['cls_drug_depth'])
-                (completed_param_combinations_df['cls_hidden_drug_size'] == temp_config['cls_hidden_drug_size'])
+                (completed_param_combinations_df['cls_drug_depth'] == temp_config['cls_drug_depth']) & 
+                (completed_param_combinations_df['cls_hidden_drug_size'] == temp_config['cls_hidden_drug_size']) & 
 
-                (completed_param_combinations_df['cls_protein_depth'] == temp_config['cls_protein_depth'])
-                (completed_param_combinations_df['cls_hidden_protein_size'] == temp_config['cls_hidden_protein_size'])
+                (completed_param_combinations_df['cls_protein_depth'] == temp_config['cls_protein_depth']) & 
+                (completed_param_combinations_df['cls_hidden_protein_size'] == temp_config['cls_hidden_protein_size']) & 
                 
-                (completed_param_combinations_df['hidden_dim_drug_one_hot'] == temp_config['hidden_dim_drug_one_hot'])
-                (completed_param_combinations_df['hidden_dim_protein_one_hot'] == temp_config['hidden_dim_protein_one_hot'])
+                (completed_param_combinations_df['hidden_dim_drug_one_hot'] == temp_config['hidden_dim_drug_one_hot']) & 
+                (completed_param_combinations_df['hidden_dim_protein_one_hot'] == temp_config['hidden_dim_protein_one_hot']) & 
                 
-                (completed_param_combinations_df['hidden_dim_drug_child'] == temp_config['hidden_dim_drug_child'])
-                (completed_param_combinations_df['hidden_dim_protein_child'] == temp_config['hidden_dim_protein_child'])
+                (completed_param_combinations_df['hidden_dim_drug_child'] == temp_config['hidden_dim_drug_child']) & 
+                (completed_param_combinations_df['hidden_dim_protein_child'] == temp_config['hidden_dim_protein_child']) & 
 
             ].empty:
                 completed_param_combinations_df = completed_param_combinations_df.append(temp_config, ignore_index=True)
