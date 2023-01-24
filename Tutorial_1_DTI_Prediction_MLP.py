@@ -1,3 +1,8 @@
+import os
+aff = os.sched_getaffinity(0)
+
+print(aff)
+
 from DeepPurpose import utils, dataset
 from DeepPurpose import DTI as models
 import warnings
@@ -10,6 +15,7 @@ import sys
 warnings.filterwarnings("ignore")
 import random
 import argparse
+
 
 
 def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performance_threshold=1.0, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483', drug_encoding='one-hot', target_encoding='one-hot'):
