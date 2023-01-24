@@ -1,3 +1,10 @@
+import os
+aff = os.sched_getaffinity(0)
+print('**********************before import torch******************************'+str(aff))
+import torch
+print('**********************after import torch******************************'+str(os.sched_getaffinity(0)))
+os.sched_setaffinity(0, aff)
+
 from DeepPurpose import utils, dataset
 from DeepPurpose import DTI as models
 import warnings
