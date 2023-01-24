@@ -215,8 +215,8 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                                 cls_hidden_dims_drug = int(temp_config['cls_drug_depth']) * [int(temp_config['cls_hidden_drug_size'])],
                                 cls_hidden_dims_protein = int(temp_config['cls_protein_depth']) * [int(temp_config['cls_hidden_protein_size'])],
                                 
-                                hidden_dims_drug_child = int(temp_config['hidden_dims_drug_child']),
-                                hidden_dims_protein_child = int(temp_config['hidden_dims_protein_child']),
+                                hidden_dim_drug_child = int(temp_config['hidden_dim_drug_child']),
+                                hidden_dim_protein_child = int(temp_config['hidden_dim_protein_child']),
                                 
                                 
                                 explicit_plus_one_hot_drug_features_mode = True,
