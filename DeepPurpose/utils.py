@@ -911,6 +911,10 @@ def generate_config(drug_encoding = None, target_encoding = None,
 					hidden_dim_protein_one_hot = 256,
 					mlp_hidden_dims_drug_one_hot = [1024, 256, 64],
 					mlp_hidden_dims_protein_one_hot = [1024, 256, 64],
+					cls_hidden_dims_drug = [100, 100, 100],
+					cls_hidden_dims_protein = [100, 100, 100],
+					hidden_dim_drug_child = 10,
+					hidden_dim_protein_child = 20,
 					):
 
 	base_config = {'input_dim_drug': input_dim_drug,
@@ -966,10 +970,14 @@ def generate_config(drug_encoding = None, target_encoding = None,
 	if explicit_plus_one_hot_drug_features_mode:
 		base_config['hidden_dim_drug_one_hot'] = hidden_dim_drug_one_hot
 		base_config['mlp_hidden_dims_drug_one_hot'] = mlp_hidden_dims_drug_one_hot
-  
+		base_config['cls_hidden_dims_drug'] = cls_hidden_dims_drug
+		base_config['hidden_dim_drug_child'] = hidden_dim_drug_child
+ 
 	if explicit_plus_one_hot_protein_features_mode:
 		base_config['hidden_dim_protein_one_hot'] = hidden_dim_protein_one_hot
 		base_config['mlp_hidden_dims_protein_one_hot'] = mlp_hidden_dims_protein_one_hot
+		base_config['cls_hidden_dims_protein'] = cls_hidden_dims_protein
+		base_config['hidden_dim_protein_child'] = hidden_dim_protein_child
 
 	if drug_encoding == 'Morgan':
 		base_config['mlp_hidden_dims_drug'] = mlp_hidden_dims_drug # MLP classifier dim 1				
