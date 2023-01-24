@@ -75,8 +75,8 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         'cls_protein_depth': [1,2,3,4],
         'cls_hidden_protein_size': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048],
         
-        'hidden_dims_drug_child': [4, 8, 16, 32, 64, 128, 256, 512],
-        'hidden_dims_protein_child': [4, 8, 16, 32, 64, 128, 256, 512]
+        'hidden_dim_drug_child': [4, 8, 16, 32, 64, 128, 256, 512],
+        'hidden_dim_protein_child': [4, 8, 16, 32, 64, 128, 256, 512]
     }
 
     api = wandb.Api()
