@@ -1,3 +1,10 @@
+import os
+aff = os.sched_getaffinity(0)
+print('**********************before import torch******************************'+str(aff))
+import torch
+print('**********************after import torch******************************'+str(os.sched_getaffinity(0)))
+os.sched_setaffinity(0, aff)
+
 from DeepPurpose import utils, dataset
 from DeepPurpose import DTI as models
 import warnings
@@ -12,7 +19,7 @@ import random
 import argparse
 
 
-def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performance_threshold=1.0, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483', drug_encoding='one-hot', target_encoding='one-hot'):
+def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performance_threshold=1.0, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483'):
     num_samples = int(num_samples)
     
     split_method = 'random'
@@ -23,7 +30,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
     elif str(val_setting) == 'A':
         split_method = 'random'
         
-    wandb_project_name = 'DeepPurpose_final_simple_one_hot'
+    wandb_project_name = 'DeepPurpose_final_simple'
     wandb_project_entity = 'diliadis'
     general_architecture_version = 'dot_product'
     
@@ -34,13 +41,17 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
     else:
         raise AttributeError('invalid dataset name passed.')
     
-    # drug_encoding, target_encoding = 'one-hot', 'one-hot'
+    drug_encoding, target_encoding = 'Morgan', 'AAC'
     print('Processing the dataset...')
     train, val, test = utils.data_process(X_drugs, X_targets, y,
                                 drug_encoding, target_encoding, 
                                 split_method=split_method,frac=[0.7,0.1,0.2],
-                                random_seed = 1)
+                                random_seed = 1,
+                                explicit_plus_one_hot_drug_features_mode = True,
+     				            explicit_plus_one_hot_protein_features_mode = True,
+                                )
     print('Done! ')
+    
     
     ranges_dict = {
         'learning_rate': [0.01, 0.001, 0.0001, 0.00001, 0.000001],
@@ -50,6 +61,24 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         
         'mlp_target_depth': [1,2,3,4],
         'mlp_target_nodes_per_layer': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048],
+        
+        'hidden_dim_drug_one_hot': [4, 8, 16, 32, 64, 128, 256, 512],
+        'hidden_dim_protein_one_hot': [4, 8, 16, 32, 64, 128, 256, 512],
+        
+        'mlp_drug_depth_one_hot': [1,2,3,4],
+        'mlp_drug_nodes_per_layer_one_hot': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048],
+        
+        'mlp_protein_depth_one_hot': [1,2,3,4],
+        'mlp_protein_nodes_per_layer_one_hot': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048],
+        
+        'cls_drug_depth': [1,2,3,4],
+        'cls_hidden_drug_size': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048],
+        
+        'cls_protein_depth': [1,2,3,4],
+        'cls_hidden_protein_size': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048],
+        
+        'hidden_dim_drug_child': [4, 8, 16, 32, 64, 128, 256, 512],
+        'hidden_dim_protein_child': [4, 8, 16, 32, 64, 128, 256, 512]
     }
 
     api = wandb.Api()
@@ -72,6 +101,27 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                         completed_param_combinations[param_name].append(len(run.config['mlp_hidden_dims_target']))
                     elif param_name == 'mlp_target_nodes_per_layer':
                         completed_param_combinations[param_name].append(run.config['mlp_hidden_dims_target'][0])
+
+                    elif param_name == 'mlp_drug_depth_one_hot':
+                        completed_param_combinations[param_name].append(len(run.config['mlp_hidden_dims_drug_one_hot']))
+                    elif param_name == 'mlp_drug_nodes_per_layer_one_hot':
+                        completed_param_combinations[param_name].append(run.config['mlp_hidden_dims_drug_one_hot'][0])
+                        
+                    elif param_name == 'mlp_protein_depth_one_hot':
+                        completed_param_combinations[param_name].append(len(run.config['mlp_hidden_dims_protein_one_hot']))
+                    elif param_name == 'mlp_protein_nodes_per_layer_one_hot':
+                        completed_param_combinations[param_name].append(run.config['mlp_hidden_dims_protein_one_hot'][0])
+                        
+                    elif param_name == 'cls_drug_depth':
+                        completed_param_combinations[param_name].append(len(run.config['cls_hidden_dims_drug']))
+                    elif param_name == 'cls_hidden_drug_size':
+                        completed_param_combinations[param_name].append(run.config['cls_hidden_dims_drug'][0])
+                        
+                    elif param_name == 'cls_protein_depth':
+                        completed_param_combinations[param_name].append(len(run.config['cls_hidden_dims_protein']))
+                    elif param_name == 'cls_hidden_protein_size':
+                        completed_param_combinations[param_name].append(run.config['cls_hidden_dims_protein'][0])
+                        
                     else:
                         completed_param_combinations[param_name].append(run.config[param_name])
                         
@@ -100,7 +150,25 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                 (completed_param_combinations_df['mlp_drug_depth'] == temp_config['mlp_drug_depth']) & 
                 (completed_param_combinations_df['mlp_drug_nodes_per_layer'] == temp_config['mlp_drug_nodes_per_layer']) &
                 (completed_param_combinations_df['mlp_target_depth'] == temp_config['mlp_target_depth']) & 
-                (completed_param_combinations_df['mlp_target_nodes_per_layer'] == temp_config['mlp_target_nodes_per_layer'])
+                (completed_param_combinations_df['mlp_target_nodes_per_layer'] == temp_config['mlp_target_nodes_per_layer']) & 
+            
+                (completed_param_combinations_df['mlp_drug_depth_one_hot'] == temp_config['mlp_drug_depth_one_hot']) & 
+                (completed_param_combinations_df['mlp_drug_nodes_per_layer_one_hot'] == temp_config['mlp_drug_nodes_per_layer_one_hot']) & 
+
+                (completed_param_combinations_df['mlp_protein_depth_one_hot'] == temp_config['mlp_protein_depth_one_hot']) & 
+                (completed_param_combinations_df['mlp_protein_nodes_per_layer_one_hot'] == temp_config['mlp_protein_nodes_per_layer_one_hot']) & 
+
+                (completed_param_combinations_df['cls_drug_depth'] == temp_config['cls_drug_depth']) & 
+                (completed_param_combinations_df['cls_hidden_drug_size'] == temp_config['cls_hidden_drug_size']) & 
+
+                (completed_param_combinations_df['cls_protein_depth'] == temp_config['cls_protein_depth']) & 
+                (completed_param_combinations_df['cls_hidden_protein_size'] == temp_config['cls_hidden_protein_size']) & 
+                
+                (completed_param_combinations_df['hidden_dim_drug_one_hot'] == temp_config['hidden_dim_drug_one_hot']) & 
+                (completed_param_combinations_df['hidden_dim_protein_one_hot'] == temp_config['hidden_dim_protein_one_hot']) & 
+                
+                (completed_param_combinations_df['hidden_dim_drug_child'] == temp_config['hidden_dim_drug_child']) & 
+                (completed_param_combinations_df['hidden_dim_protein_child'] == temp_config['hidden_dim_protein_child'])
             ].empty:
                 completed_param_combinations_df = completed_param_combinations_df.append(temp_config, ignore_index=True)
                 print('NEW CONFIG FOUND: '+str(temp_config))
@@ -132,7 +200,23 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                                 num_workers=int(num_workers),
                                 performance_threshold = {'metric_name':'MSE', 'value': performance_threshold, 'direction': 'min', 'max_epochs_allowed': 30},
                                 validation_setting=val_setting,
-                                dataset_name = dataset_name.upper()
+                                dataset_name = dataset_name.upper(),
+                                
+                                hidden_dim_drug_one_hot = int(temp_config['hidden_dim_drug_one_hot']),
+                                hidden_dim_protein_one_hot = int(temp_config['hidden_dim_protein_one_hot']),
+                                
+                                mlp_hidden_dims_drug_one_hot = int(temp_config['mlp_drug_depth_one_hot']) * [int(temp_config['mlp_drug_nodes_per_layer_one_hot'])],
+                                mlp_hidden_dims_protein_one_hot = int(temp_config['mlp_protein_depth_one_hot']) * [int(temp_config['mlp_protein_nodes_per_layer_one_hot'])],
+                                
+                                cls_hidden_dims_drug = int(temp_config['cls_drug_depth']) * [int(temp_config['cls_hidden_drug_size'])],
+                                cls_hidden_dims_protein = int(temp_config['cls_protein_depth']) * [int(temp_config['cls_hidden_protein_size'])],
+                                
+                                hidden_dim_drug_child = int(temp_config['hidden_dim_drug_child']),
+                                hidden_dim_protein_child = int(temp_config['hidden_dim_protein_child']),
+                                
+                                
+                                explicit_plus_one_hot_drug_features_mode = True,
+                                explicit_plus_one_hot_protein_features_mode = True,
                                 )
 
         config['protein_mode_coverage'] = 'extended'
@@ -150,10 +234,7 @@ if __name__ == "__main__":
     parser.add_argument("--num_workers", help="the number of workers that will be used by the dataloaders")
     parser.add_argument("--dataset_name", help="the name of the dataset that will be used. (DAVIS and KIBA are the current valid options)")
     parser.add_argument("--performance_threshold", help="performance threshold checked before epoch 30")
-    parser.add_argument("--drug_encoding", help="drug encoder name")
-    parser.add_argument("--target_encoding", help="target encoder name")
-
     args = parser.parse_args()
     config = vars(args)
     
-    main(config['num_configs'], config['val_setting'], config['cuda_id'], config['num_workers'], config['dataset_name'], performance_threshold=float(config['performance_threshold']), drug_encoding=config['drug_encoding'], target_encoding=config['target_encoding'])
+    main(config['num_configs'], config['val_setting'], config['cuda_id'], config['num_workers'], config['dataset_name'], performance_threshold=float(config['performance_threshold']))
