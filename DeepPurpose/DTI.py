@@ -36,8 +36,8 @@ class TwoBranchMLPModel(nn.Sequential):
         
         if parent_mode:
             if config['explicit_plus_one_hot_drug_features_mode']:
-                self.input_dim_drug = config['mlp_hidden_dims_drug_one_hot'][-1]
-                self.input_dim_protein = config['mlp_hidden_dims_protein_one_hot'][-1]            
+                self.input_dim_drug = config['hidden_dim_drug_child']
+                self.input_dim_protein = config['hidden_dim_protein_child']            
             else:
                 self.input_dim_drug = config['hidden_dim_drug']
                 self.input_dim_protein = config['hidden_dim_protein']
@@ -57,7 +57,7 @@ class TwoBranchMLPModel(nn.Sequential):
         if parent_mode:
             self.hidden_dims = config['cls_hidden_dims']
         else:
-            self.hidden_dims = config['mlp_hidden_dims_'+suffix+'_one_hot']
+            self.hidden_dims = config['cls_hidden_dims_'+suffix]
             
         layer_size = len(self.hidden_dims)
         
@@ -65,6 +65,9 @@ class TwoBranchMLPModel(nn.Sequential):
         
         if parent_mode:
             dims.append(1)
+            layer_size += 1
+        else:
+            dims.append(config['hidden_dim_'+suffix+'_child'])
             layer_size += 1
             
         self.predictor = nn.ModuleList([nn.Linear(dims[i], dims[i+1]) for i in range(layer_size)])
@@ -87,8 +90,12 @@ class TwoBranchMLPModel(nn.Sequential):
 class TwoBranchDotProductModel(nn.Sequential):
     def __init__(self, model_drug, model_protein, **config):
         super(TwoBranchDotProductModel, self).__init__()
-        self.input_dim_drug = config['hidden_dim_drug']
-        self.input_dim_protein = config['hidden_dim_protein']
+        if config['explicit_plus_one_hot_drug_features_mode']:
+            self.input_dim_drug = config['hidden_dim_drug_child']
+            self.input_dim_protein = config['hidden_dim_protein_child']            
+        else:
+            self.input_dim_drug = config['hidden_dim_drug']
+            self.input_dim_protein = config['hidden_dim_protein']
 
         self.model_drug = model_drug
         self.model_protein = model_protein
@@ -98,8 +105,8 @@ class TwoBranchDotProductModel(nn.Sequential):
 
     def forward(self, v_D, v_P):
         # each encoding
-        v_D = self.model_drug(v_D)
-        v_P = self.model_protein(v_P)
+        v_D = self.model_drug(*v_D) if isinstance(v_D, list) else self.model_drug(v_D)
+        v_P = self.model_protein(*v_P) if isinstance(v_P, list) else self.model_protein(v_P)
         
         v_f = torch.unsqueeze((v_D*v_P).sum(1), 1)
 
@@ -108,8 +115,12 @@ class TwoBranchDotProductModel(nn.Sequential):
 class TwoBranchKroneckerModel(nn.Sequential):
     def __init__(self, model_drug, model_protein, **config):
         super(TwoBranchKroneckerModel, self).__init__()
-        self.input_dim_drug = config['hidden_dim_drug']
-        self.input_dim_protein = config['hidden_dim_protein']
+        if config['explicit_plus_one_hot_drug_features_mode']:
+            self.input_dim_drug = config['hidden_dim_drug_child']
+            self.input_dim_protein = config['hidden_dim_protein_child']            
+        else:
+            self.input_dim_drug = config['hidden_dim_drug']
+            self.input_dim_protein = config['hidden_dim_protein']
 
         self.model_drug = model_drug
         self.model_protein = model_protein
@@ -131,8 +142,8 @@ class TwoBranchKroneckerModel(nn.Sequential):
 
     def forward(self, v_D, v_P):
         # each encoding
-        v_D = self.model_drug(v_D)
-        v_P = self.model_protein(v_P)
+        v_D = self.model_drug(*v_D) if isinstance(v_D, list) else self.model_drug(v_D)
+        v_P = self.model_protein(*v_P) if isinstance(v_P, list) else self.model_protein(v_P)
         
         v_comb = torch.stack([torch.kron(ai, bi) for ai, bi in zip(v_D, v_P)], dim=0)
         v_f = self.comb_branch(v_comb)
@@ -389,9 +400,9 @@ class DBTA:
         
         
         if config['explicit_plus_one_hot_drug_features_mode']:
-            self.model_drug = TwoBranchMLPModel(self.model_drug, MLP(config['num_drugs'], config['hidden_dim_drug_one_hot'], [config['hidden_dim_drug_one_hot']], device=config['device']), suffix='drug', parent_mode=False, **config)
+            self.model_drug = TwoBranchMLPModel(self.model_drug, MLP(config['num_drugs'], config['hidden_dim_drug_one_hot'], config['mlp_hidden_dims_drug_one_hot'], device=config['device']), suffix='drug', parent_mode=False, **config)
         if config['explicit_plus_one_hot_protein_features_mode']:
-            self.model_protein = TwoBranchMLPModel(self.model_protein, MLP(config['num_proteins'], config['hidden_dim_protein_one_hot'], [config['hidden_dim_protein_one_hot']], device=config['device']), suffix='protein', parent_mode=False, **config)
+            self.model_protein = TwoBranchMLPModel(self.model_protein, MLP(config['num_proteins'], config['hidden_dim_protein_one_hot'], config['mlp_hidden_dims_protein_one_hot'], device=config['device']), suffix='protein', parent_mode=False, **config)
         
         
         if config['general_architecture_version'] == 'mlp':
