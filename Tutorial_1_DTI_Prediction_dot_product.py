@@ -77,8 +77,8 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         'cls_protein_depth': [1,2,3,4],
         'cls_hidden_protein_size': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048],
         
-        'hidden_dim_drug_child': [4, 8, 16, 32, 64, 128, 256, 512],
-        'hidden_dim_protein_child': [4, 8, 16, 32, 64, 128, 256, 512]
+        'embedding_size_child': [4, 8, 16, 32, 64, 128, 256, 512],
+
     }
 
     api = wandb.Api()
@@ -123,6 +123,9 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                     elif param_name == 'cls_hidden_protein_size':
                         completed_param_combinations[param_name].append(run.config['cls_hidden_dims_protein'][0])
                         
+                    elif param_name == 'embedding_size_child':
+                        completed_param_combinations[param_name].append(run.config['hidden_dim_drug_child'])
+                    
                     else:
                         completed_param_combinations[param_name].append(run.config[param_name])
                         
@@ -168,8 +171,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                 (completed_param_combinations_df['hidden_dim_drug_one_hot'] == temp_config['hidden_dim_drug_one_hot']) & 
                 (completed_param_combinations_df['hidden_dim_protein_one_hot'] == temp_config['hidden_dim_protein_one_hot']) & 
                 
-                (completed_param_combinations_df['hidden_dim_drug_child'] == temp_config['hidden_dim_drug_child']) & 
-                (completed_param_combinations_df['hidden_dim_protein_child'] == temp_config['hidden_dim_protein_child'])
+                (completed_param_combinations_df['embedding_size_child'] == temp_config['embedding_size_child'])
             ].empty:
                 completed_param_combinations_df = completed_param_combinations_df.append(temp_config, ignore_index=True)
                 print('NEW CONFIG FOUND: '+str(temp_config))
@@ -212,8 +214,8 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                                 cls_hidden_dims_drug = int(temp_config['cls_drug_depth']) * [int(temp_config['cls_hidden_drug_size'])],
                                 cls_hidden_dims_protein = int(temp_config['cls_protein_depth']) * [int(temp_config['cls_hidden_protein_size'])],
                                 
-                                hidden_dim_drug_child = int(temp_config['hidden_dim_drug_child']),
-                                hidden_dim_protein_child = int(temp_config['hidden_dim_protein_child']),
+                                hidden_dim_drug_child = int(temp_config['embedding_size_child']),
+                                hidden_dim_protein_child = int(temp_config['embedding_size_child']),
                                 
                                 
                                 explicit_plus_one_hot_drug_features_mode = True,
