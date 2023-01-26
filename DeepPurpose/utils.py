@@ -684,14 +684,21 @@ class data_process_loader(data.Dataset):
 			v_p_hot = self.df.iloc[index]['target_encoding_one_hot']
    
 		y = self.labels[index]
-
+  
+		# print('v_d_hot is None: '+str(v_d_hot is None))
+		# print('v_p_hot is None: '+str(v_p_hot is None))
+  
 		if v_d_hot is not None and v_p_hot is not None:
+			# print('return 1')
 			return (v_d, v_d_hot), (v_p, v_p_hot), y
 		elif v_d_hot is None and v_p_hot is not None:
+			# print('return 2')
 			return v_d, (v_p, v_p_hot), y
 		elif v_d_hot is not None and v_p_hot is None:
+			# print('return 3')
 			return (v_d, v_d_hot), v_p, y
 		else:
+			# print('return 4')
 			return v_d, v_p, y
 
 
