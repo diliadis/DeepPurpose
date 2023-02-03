@@ -1,3 +1,10 @@
+import os
+aff = os.sched_getaffinity(0)
+print('**********************before import torch******************************'+str(aff))
+import torch
+print('**********************after import torch******************************'+str(os.sched_getaffinity(0)))
+os.sched_setaffinity(0, aff)
+
 from DeepPurpose import utils, dataset
 from DeepPurpose import DTI as models
 import warnings
@@ -14,13 +21,7 @@ import threading
 import os
 import torch
 
-def reset_stuff(seed):
-    # Seed
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    np.random.seed(seed)
-    random.seed(seed)
+
 
 def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_name, reserved_run_ids_file_name, num_epochs, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483'):
     
@@ -54,7 +55,7 @@ def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_n
     # Group the dataframe by the specified columns
     grouped = df.groupby(['general_architecture_version', 'dataset_name', 'validation_setting'])
     # Select the rows with the smallest 'best_val_loss' value from each group
-    result = grouped.apply(lambda x: x.nsmallest(199, 'best_val_loss'))
+    result = grouped.apply(lambda x: x.nsmallest(19, 'best_val_loss'))
     # Reset the index
     result.reset_index(drop=True, inplace=True)
 
@@ -86,9 +87,7 @@ def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_n
             print(run.id+' is in '+updates+' : '+str(is_reserved)) 
             
             if not is_reserved:
-                
-                reset_stuff(1)
-                
+                                
                 with open(update_file, "a") as f:
                     # Write the current time to the file as an update
                     f.write(str(run.id)+"\n")
