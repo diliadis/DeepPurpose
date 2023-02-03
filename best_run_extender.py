@@ -131,6 +131,7 @@ def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_n
                                         wandb_dir = wandb_dir,
                                         num_workers=int(num_workers),
                                         parent_wandb_id = run.id,
+                                        dataset_name = dataset_name
                 )
                 
                 config.update({k: v for k,v in source_config.items() if k not in ['device', 'cuda_id', 'wandb_dir', 'num_workers', 'train_epoch', 'wandb_project_name']})
