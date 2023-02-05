@@ -99,4 +99,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
     config = vars(args)
     
-    main(config['id'], config['cuda_id'], config['wandb_project_name'], config['general_architecture_name'])
+    main(config['id'], config['cuda_id'], config['source_wandb_project_name'], config['target_wandb_project_name'], config['general_architecture_name'])
