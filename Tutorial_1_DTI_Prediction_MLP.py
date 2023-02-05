@@ -38,6 +38,8 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         X_drugs, X_targets, y = dataset.load_process_DAVIS(path = './data', binary = False, convert_to_log = True, threshold = 30)
     elif dataset_name.lower() == 'kiba':
         X_drugs, X_targets, y = dataset.load_process_KIBA(path = './data/', binary=False)
+    elif dataset_name.lower() == 'bindingdb':
+        X_drugs, X_targets, y = dataset.process_BindingDB('../data/BindingDB_All.tsv', y='Kd', binary=False, convert_to_log=True)
     else:
         raise AttributeError('invalid dataset name passed.')
     
