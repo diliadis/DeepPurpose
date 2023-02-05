@@ -17,13 +17,13 @@ import warnings
 warnings.filterwarnings("ignore")
 import argparse
 
-def main(run_id, cuda_id, wandb_project_name, general_architecture_version):
+def main(run_id, cuda_id, source_wandb_project_name, target_wandb_project_name, general_architecture_version):
         
     wandb_project_entity = 'diliadis'
     
     # load the config of the requested run from wandb
     api = wandb.Api()
-    run = api.run(path=wandb_project_entity+'/'+wandb_project_name+'/'+run_id)
+    run = api.run(path=wandb_project_entity+'/'+source_wandb_project_name+'/'+run_id)
     best_config = run.config
     best_config['cuda_id'] = cuda_id
     
@@ -77,6 +77,7 @@ def main(run_id, cuda_id, wandb_project_name, general_architecture_version):
     config['parent_wandb_id'] = run.id
     config['explicit_plus_one_hot_drug_features_mode'] = False
     config['explicit_plus_one_hot_protein_features_mode'] = False
+    config['wandb_project_name'] = target_wandb_project_name
     # updating the dummy config with the dictionary loaded from wandb
     config.update(best_config)
     # initialize the model
@@ -91,7 +92,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="DeepPurpose DTI example", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--id", help="the wandb_id of the config to be trained")
     parser.add_argument("--cuda_id", help="the id of the GPU that will be used for training")
-    parser.add_argument("--wandb_project_name", help="the project name where the config is stored")
+    parser.add_argument("--source_wandb_project_name", help="the project name where the config is stored")
+    parser.add_argument("--target_wandb_project_name", help="the project name where the config will is stored")
     parser.add_argument("--general_architecture_name", help="the type of the architecture that is tested [dot_product, mlp]")
 
     args = parser.parse_args()
