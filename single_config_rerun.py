@@ -77,9 +77,9 @@ def main(run_id, cuda_id, source_wandb_project_name, target_wandb_project_name, 
     config['parent_wandb_id'] = run.id
     config['explicit_plus_one_hot_drug_features_mode'] = False
     config['explicit_plus_one_hot_protein_features_mode'] = False
-    config['wandb_project_name'] = target_wandb_project_name
     # updating the dummy config with the dictionary loaded from wandb
     config.update(best_config)
+    config['wandb_project_name'] = target_wandb_project_name
     # initialize the model
     model = models.model_initialize(**config)
     print(str(model.model))
