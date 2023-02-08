@@ -17,31 +17,9 @@ def main(source_wandb_project_name, reserved_run_ids_file_name, top_k):
 
     api = wandb.Api()
     runs = api.runs('diliadis/' + source_wandb_project_name) 
-
-    data = {'id': [], 'validation_setting': [], 'dataset_name': [], 'general_architecture_version': [],'best_val_loss': [], 'test_MSE': [], 'epoch': []}
-
-    for run in tqdm(runs):
-        data['id'].append(run.id)
-        data['validation_setting'].append(run.config['validation_setting'])
-        data['dataset_name'].append(run.config['dataset_name'])
-        data['general_architecture_version'].append(run.config['general_architecture_version'])
-        data['epoch'].append(run.summary['epoch'])
-        data['test_MSE'].append(run.summary['test_MSE'])
-        data['best_val_loss'].append(run.summary['best_val_loss'])
-        
-    df = pd.DataFrame(data)
-    
-    # Group the dataframe by the specified columns
-    grouped = df.groupby(['general_architecture_version', 'dataset_name', 'validation_setting'])
-    # Select the rows with the smallest 'best_val_loss' value from each group
-    result = grouped.apply(lambda x: x.nsmallest(int(top_k), 'best_val_loss'))
-    # Reset the index
-    result.reset_index(drop=True, inplace=True)
-    
-    run_ids = set(result['id'].to_list())
     
     # Get a set of all the run ids
-    # run_ids = set(run.id for run in runs)
+    run_ids = set(run.id for run in runs)
     
     print('Number of ids in the wandb project: '+str(len(run_ids)))
     
