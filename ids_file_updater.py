@@ -1,6 +1,7 @@
 import wandb
 import argparse
 import pandas as pd
+from tqdm import tqdm
 
 def main(source_wandb_project_name, reserved_run_ids_file_name, top_k):
     
