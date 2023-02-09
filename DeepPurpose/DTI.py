@@ -30,7 +30,6 @@ import wandb
 from DeepPurpose.utils import EarlyStopping
 import random
 
-from aim import Run
 
 class TwoBranchMLPModel(nn.Sequential):
     def __init__(self, model_drug, model_protein, parent_mode=True, suffix='', **config):
