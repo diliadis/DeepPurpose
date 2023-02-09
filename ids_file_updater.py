@@ -19,7 +19,7 @@ def main(source_wandb_project_name, reserved_run_ids_file_name, top_k):
     runs = api.runs('diliadis/' + source_wandb_project_name) 
     
     # Get a set of all the run ids
-    run_ids = set(run.id for run in runs)
+    run_ids = set(run.config['parent_wandb_id'] for run in runs)
     
     print('Number of ids in the wandb project: '+str(len(run_ids)))
     
