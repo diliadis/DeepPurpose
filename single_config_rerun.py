@@ -43,10 +43,7 @@ def main(run_id, cuda_id, source_wandb_project_name, target_wandb_project_name, 
         
     drug_encoding, target_encoding = best_config['drug_encoding'], best_config['target_encoding']
     print('Processing the dataset...')
-    train, val, test = utils.data_process(X_drugs, X_targets, y, 
-                                drug_encoding, target_encoding, 
-                                split_method=split_method,frac=[0.7,0.1,0.2],
-                                random_seed = 1)
+
     print('Done! ')
     config = {}
     '''
@@ -75,11 +72,21 @@ def main(run_id, cuda_id, source_wandb_project_name, target_wandb_project_name, 
                             )
     '''
     config['parent_wandb_id'] = run.id
+    if 
     config['explicit_plus_one_hot_drug_features_mode'] = False
     config['explicit_plus_one_hot_protein_features_mode'] = False
     # updating the dummy config with the dictionary loaded from wandb
     config.update(best_config)
     config['wandb_project_name'] = target_wandb_project_name
+    
+    train, val, test = utils.data_process(X_drugs, X_targets, y, 
+                                drug_encoding, target_encoding, 
+                                split_method=split_method,frac=[0.7,0.1,0.2],
+                                random_seed = 1,
+                                explicit_plus_one_hot_drug_features_mode = config['explicit_plus_one_hot_drug_features_mode'],
+     				            explicit_plus_one_hot_protein_features_mode = config['explicit_plus_one_hot_protein_features_mode']
+                                )
+    
     # initialize the model
     model = models.model_initialize(**config)
     print(str(model.model))
