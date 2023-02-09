@@ -27,7 +27,7 @@ def main(source_wandb_project_name, reserved_run_ids_file_name, top_k):
     
     print('Re-writing the file...')
     # Write the updated ids back to the text file
-    with open('file_name.txt', 'w') as f:
+    with open(reserved_run_ids_file_name+'.txt', 'w') as f:
         for id in ids:
             f.write(f"{id}\n")
     print('Done')
