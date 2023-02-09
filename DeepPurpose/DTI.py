@@ -30,6 +30,8 @@ import wandb
 from DeepPurpose.utils import EarlyStopping
 import random
 
+from aim import Run
+
 class TwoBranchMLPModel(nn.Sequential):
     def __init__(self, model_drug, model_protein, parent_mode=True, suffix='', **config):
         super(TwoBranchMLPModel, self).__init__()
@@ -75,7 +77,7 @@ class TwoBranchMLPModel(nn.Sequential):
     def forward(self, v_D, v_P):
         # each encoding        
         v_D = self.model_drug(*v_D) if (isinstance(v_D, list) and len(v_D)==2) else self.model_drug(v_D)
-        v_P = self.model_protein(*v_P) if (isinstance(v_P, list) and len(_D)==2) else self.model_protein(v_P)
+        v_P = self.model_protein(*v_P) if (isinstance(v_P, list) and len(v_P)==2) else self.model_protein(v_P)
 
         # concatenate and classify
         v_f = torch.cat((v_D, v_P), 1)
@@ -106,7 +108,7 @@ class TwoBranchDotProductModel(nn.Sequential):
     def forward(self, v_D, v_P):
         # each encoding
         v_D = self.model_drug(*v_D) if (isinstance(v_D, list) and len(v_D)==2) else self.model_drug(v_D)
-        v_P = self.model_protein(*v_P) if (isinstance(v_P, list) and len(v_D)==2) else self.model_protein(v_P)
+        v_P = self.model_protein(*v_P) if (isinstance(v_P, list) and len(v_P)==2) else self.model_protein(v_P)
 
         v_f = torch.unsqueeze((v_D*v_P).sum(1), 1)
 
@@ -146,7 +148,7 @@ class TwoBranchKroneckerModel(nn.Sequential):
     def forward(self, v_D, v_P):
         # each encoding
         v_D = self.model_drug(*v_D) if (isinstance(v_D, list) and len(v_D)==2) else self.model_drug(v_D)
-        v_P = self.model_protein(*v_P) if (isinstance(v_P, list) and len(v_D)==2) else self.model_protein(v_P)
+        v_P = self.model_protein(*v_P) if (isinstance(v_P, list) and len(v_P)==2) else self.model_protein(v_P)
         
         v_comb = torch.stack([torch.kron(ai, bi) for ai, bi in zip(v_D, v_P)], dim=0)
         v_f = self.comb_branch(v_comb)
@@ -539,6 +541,8 @@ class DBTA:
             self.wandb_run.watch(self.model)
             self.wandb_run.config.update(self.config)
 
+        # aim_run = Run(log_system_params=True)
+        # aim_run['hparams'] = self.config
 
         # Future TODO: support multiple optimizers with parameters
         opt = torch.optim.Adam(self.model.parameters(), lr = lr, weight_decay = decay)
@@ -640,6 +644,7 @@ class DBTA:
                             ". Total time " + str(int(t_now - t_start)/3600)[:7] + " hours") 
                         ### record total run time
                 if self.wandb_run is not None: self.wandb_run.log({'train_loss': loss.item(), 'train_batch': iteration_loss}, commit=True)
+                # aim_run.track({'train_loss': loss.item(), 'train_batch': iteration_loss})
 
             # if self.wandb_run is not None:
             # 	self.wandb_run.log(results_to_log, step=epoch)
