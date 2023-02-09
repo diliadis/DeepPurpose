@@ -22,7 +22,7 @@ def main(run_id, cuda_id, source_wandb_project_name, target_wandb_project_name, 
     wandb_project_entity = 'diliadis'
     
     # load the config of the requested run from wandb
-    api = wandb.Api()
+    api = wandb.Api(timeout=19)
     run = api.run(path=wandb_project_entity+'/'+source_wandb_project_name+'/'+run_id)
     best_config = run.config
     best_config['cuda_id'] = cuda_id
