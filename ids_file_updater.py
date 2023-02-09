@@ -23,14 +23,14 @@ def main(source_wandb_project_name, reserved_run_ids_file_name, top_k):
     
     print('Number of ids in the wandb project: '+str(len(run_ids)))
     
-    ids = ids.intersection(run_ids)
+    # ids = ids.intersection(run_ids)
     
     print(str(ids))
     
     print('Re-writing the file...')
     # Write the updated ids back to the text file
     with open(reserved_run_ids_file_name+'.txt', 'w') as f:
-        for id in tqdm(ids):
+        for id in tqdm(run_ids):
             f.write(f"{id}\n")
     print('Done')
     
