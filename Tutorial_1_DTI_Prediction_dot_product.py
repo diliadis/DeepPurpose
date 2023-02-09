@@ -30,7 +30,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
     elif str(val_setting) == 'A':
         split_method = 'random'
         
-    wandb_project_name = 'DeepPurpose_final_simple'
+    wandb_project_name = 'DeepPurpose_final_simple_viz'
     wandb_project_entity = 'diliadis'
     general_architecture_version = 'dot_product'
     
@@ -52,7 +52,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
     
     ranges_dict = {
         'learning_rate': [0.01, 0.001, 0.0001, 0.00001, 0.000001],
-        'embedding_size': [4, 8, 16, 32, 64, 128, 256, 512],
+        'embedding_size': [2, 3],
         'mlp_drug_depth': [1,2,3,4],
         'mlp_drug_nodes_per_layer': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048],
         
