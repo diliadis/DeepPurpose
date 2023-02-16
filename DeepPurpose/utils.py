@@ -959,10 +959,12 @@ def generate_config(drug_encoding = None, target_encoding = None,
 	if not os.path.exists(base_config['result_folder']):
 		os.makedirs(base_config['result_folder'])
   
-	if base_config['dataset_name'] == 'DAVIS':
+	if base_config['dataset_name'].lower() == 'davis':
 		base_config['num_drugs'], base_config['num_proteins'] = 68, 379
-	elif base_config['dataset_name'] == 'KIBA':
+	elif base_config['dataset_name'].lower() == 'kiba':
 		base_config['num_drugs'], base_config['num_proteins'] = 2068, 229
+	elif base_config['dataset_name'].lower() == 'bindingdb':
+		base_config['num_drugs'], base_config['num_proteins'] = 17088, 82809
 	else:
 		raise AttributeError('Unknown dataset name passed.')
   
@@ -1053,7 +1055,7 @@ def generate_config(drug_encoding = None, target_encoding = None,
 	elif drug_encoding is None:
 		pass
 	elif drug_encoding == 'one-hot':
-		base_config['input_dim_drug'] = 68 if base_config['dataset_name'].lower() == 'davis' else 2068
+		base_config['input_dim_drug'] = 68 if base_config['num_drugs']
 		base_config['mlp_hidden_dims_drug'] = mlp_hidden_dims_drug # MLP classifier dim 1				
 	else:
 		raise AttributeError("Please use the correct drug encoding available!")
@@ -1095,7 +1097,7 @@ def generate_config(drug_encoding = None, target_encoding = None,
 	elif target_encoding is None:
 		pass
 	elif target_encoding == 'one-hot':
-		base_config['input_dim_protein'] = 379 if base_config['dataset_name'].lower() == 'davis' else 229
+		base_config['input_dim_protein'] = base_config['num_proteins']
 		base_config['mlp_hidden_dims_target'] = mlp_hidden_dims_target # MLP classifier dim 1				
 	else:
 		raise AttributeError("Please use the correct protein encoding available!")
