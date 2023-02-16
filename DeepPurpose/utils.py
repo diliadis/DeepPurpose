@@ -1055,7 +1055,7 @@ def generate_config(drug_encoding = None, target_encoding = None,
 	elif drug_encoding is None:
 		pass
 	elif drug_encoding == 'one-hot':
-		base_config['input_dim_drug'] = 68 if base_config['num_drugs']
+		base_config['input_dim_drug'] = base_config['num_drugs']
 		base_config['mlp_hidden_dims_drug'] = mlp_hidden_dims_drug # MLP classifier dim 1				
 	else:
 		raise AttributeError("Please use the correct drug encoding available!")
