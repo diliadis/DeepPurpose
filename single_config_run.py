@@ -31,7 +31,7 @@ def main(val_setting, cuda_id, num_workers, dataset_name, performance_threshold=
         
     wandb_project_name = 'DeepPurpose_tests'
     wandb_project_entity = 'diliadis'
-    general_architecture_version = 'mlp'
+    general_architecture_version = 'dot_product'
     
     if dataset_name.lower() == 'davis':
         X_drugs, X_targets, y = dataset.load_process_DAVIS(path = './data', binary = False, convert_to_log = True, threshold = 30)
