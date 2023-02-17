@@ -93,6 +93,9 @@ class TwoBranchMLPModel(nn.Sequential):
 class TwoBranchDotProductModel(nn.Sequential):
     def __init__(self, model_drug, model_protein, **config):
         super(TwoBranchDotProductModel, self).__init__()
+        
+        self.drug_encoder_name = config['drug_encoding']
+        self.protein_encoder_name = config['target_encoding'] 
         if config['explicit_plus_one_hot_drug_features_mode']:
             self.input_dim_drug = config['hidden_dim_drug_child']
             self.input_dim_protein = config['hidden_dim_protein_child']            
@@ -118,6 +121,9 @@ class TwoBranchDotProductModel(nn.Sequential):
 class TwoBranchKroneckerModel(nn.Sequential):
     def __init__(self, model_drug, model_protein, **config):
         super(TwoBranchKroneckerModel, self).__init__()
+        
+        self.drug_encoder_name = config['drug_encoding']
+        self.protein_encoder_name = config['target_encoding']
         if config['explicit_plus_one_hot_drug_features_mode']:
             self.input_dim_drug = config['hidden_dim_drug_child']
             self.input_dim_protein = config['hidden_dim_protein_child']            
