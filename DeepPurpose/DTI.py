@@ -86,8 +86,8 @@ class TwoBranchMLPModel(nn.Sequential):
             if i==(len(self.predictor)-1):
                 v_f = l(v_f)
             else:
-                # v_f = F.relu(self.dropout(l(v_f)))
-                v_f = F.relu(l(v_f))
+                v_f = F.relu(self.dropout(l(v_f)))
+                # v_f = F.relu(l(v_f))
         return v_f
 
 class TwoBranchDotProductModel(nn.Sequential):
