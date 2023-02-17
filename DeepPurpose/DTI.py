@@ -108,8 +108,8 @@ class TwoBranchDotProductModel(nn.Sequential):
 
     def forward(self, v_D, v_P):
         # each encoding
-        v_D = self.model_drug(*v_D) if (isinstance(v_D, list) and len(v_D)==2) else self.model_drug(v_D)
-        v_P = self.model_protein(*v_P) if (isinstance(v_P, list) and len(v_P)==2) else self.model_protein(v_P)
+        v_D = self.model_drug(*v_D) if (isinstance(v_D, list) and len(v_D)==2) and self.drug_encoder_name != 'Transformer' else self.model_drug(v_D)
+        v_P = self.model_protein(*v_P) if (isinstance(v_P, list) and len(v_P)==2) and self.protein_encoder_name != 'Transformer'  else self.model_protein(v_P)
 
         v_f = torch.unsqueeze((v_D*v_P).sum(1), 1)
 
@@ -148,8 +148,8 @@ class TwoBranchKroneckerModel(nn.Sequential):
 
     def forward(self, v_D, v_P):
         # each encoding
-        v_D = self.model_drug(*v_D) if (isinstance(v_D, list) and len(v_D)==2) else self.model_drug(v_D)
-        v_P = self.model_protein(*v_P) if (isinstance(v_P, list) and len(v_P)==2) else self.model_protein(v_P)
+        v_D = self.model_drug(*v_D) if (isinstance(v_D, list) and len(v_D)==2) and self.drug_encoder_name != 'Transformer' else self.model_drug(v_D)
+        v_P = self.model_protein(*v_P) if (isinstance(v_P, list) and len(v_P)==2) and self.protein_encoder_name != 'Transformer'  else self.model_protein(v_P)
         
         v_comb = torch.stack([torch.kron(ai, bi) for ai, bi in zip(v_D, v_P)], dim=0)
         v_f = self.comb_branch(v_comb)
