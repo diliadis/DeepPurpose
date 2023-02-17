@@ -35,6 +35,8 @@ class TwoBranchMLPModel(nn.Sequential):
     def __init__(self, model_drug, model_protein, parent_mode=True, suffix='', **config):
         super(TwoBranchMLPModel, self).__init__()
         
+        self.drug_encoder_name = config['drug_encoding']
+        self.protein_encoder_name = config['target_encoding'] 
         if parent_mode:
             if config['explicit_plus_one_hot_drug_features_mode']:
                 self.input_dim_drug = config['hidden_dim_drug_child']
@@ -75,8 +77,8 @@ class TwoBranchMLPModel(nn.Sequential):
 
     def forward(self, v_D, v_P):
         # each encoding        
-        v_D = self.model_drug(*v_D) if (isinstance(v_D, list) and len(v_D)==2) else self.model_drug(v_D)
-        v_P = self.model_protein(*v_P) if (isinstance(v_P, list) and len(v_P)==2) else self.model_protein(v_P)
+        v_D = self.model_drug(*v_D) if (isinstance(v_D, list) and len(v_D)==2) and self.drug_encoder_name != 'Transformer' else self.model_drug(v_D)
+        v_P = self.model_protein(*v_P) if (isinstance(v_P, list) and len(v_P)==2) and self.protein_encoder_name != 'Transformer'  else self.model_protein(v_P)
 
         # concatenate and classify
         v_f = torch.cat((v_D, v_P), 1)
