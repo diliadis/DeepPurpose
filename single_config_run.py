@@ -19,7 +19,7 @@ import random
 import argparse
 
 
-def main(val_setting, cuda_id, num_workers, dataset_name, performance_threshold=1.0, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483'):
+def main(general_architecture_version, val_setting, cuda_id, num_workers, dataset_name, performance_threshold=1.0, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483'):
     
     split_method = 'random'
     if str(val_setting) == 'B':
@@ -31,7 +31,7 @@ def main(val_setting, cuda_id, num_workers, dataset_name, performance_threshold=
         
     wandb_project_name = 'DeepPurpose_tests'
     wandb_project_entity = 'diliadis'
-    general_architecture_version = 'dot_product'
+    general_architecture_version = general_architecture_version
     
     if dataset_name.lower() == 'davis':
         X_drugs, X_targets, y = dataset.load_process_DAVIS(path = './data', binary = False, convert_to_log = True, threshold = 30)
@@ -86,6 +86,7 @@ def main(val_setting, cuda_id, num_workers, dataset_name, performance_threshold=
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="DeepPurpose DTI example", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("--general_architecture_version", help="variant of dual-encoder architecture")
     parser.add_argument("--val_setting", help="the validation setting that will be used to split the data")
     parser.add_argument("--cuda_id", help="the id of the GPU that will be used for training")
     parser.add_argument("--num_workers", help="the number of workers that will be used by the dataloaders")
@@ -94,5 +95,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     config = vars(args)
     
-    main(config['val_setting'], config['cuda_id'], config['num_workers'], config['dataset_name'], performance_threshold=float(config['performance_threshold']))
+    main(config['general_architecture_version'], config['val_setting'], config['cuda_id'], config['num_workers'], config['dataset_name'], performance_threshold=float(config['performance_threshold']))
     
