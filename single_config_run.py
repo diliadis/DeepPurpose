@@ -42,7 +42,7 @@ def main(val_setting, cuda_id, num_workers, dataset_name, performance_threshold=
     else:
         raise AttributeError('invalid dataset name passed.')
     
-    drug_encoding, target_encoding = 'Transformer', 'CNN'
+    drug_encoding, target_encoding = 'MPNN', 'CNN'
     print('Processing the dataset...')
     train, val, test = utils.data_process(X_drugs, X_targets, y,
                                 drug_encoding, target_encoding, 
@@ -57,9 +57,10 @@ def main(val_setting, cuda_id, num_workers, dataset_name, performance_threshold=
                             train_epoch = 100, 
                             LR = 0.001, 
                             batch_size = 128,
-                            hidden_dim_drug = 256,
-                            hidden_dim_protein = 256,
-                            transformer_emb_size_drug = 256,
+                            hidden_dim_drug = 128,
+                            hidden_dim_protein = 128,
+                            mpnn_hidden_size = 128,
+                            mpnn_depth = 3,
                             cnn_target_filters = [32,64,96],
                             cnn_target_kernels = [4,8,12],
                             cls_hidden_dims = [1024,1024,512], 
