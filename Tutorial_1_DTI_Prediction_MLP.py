@@ -63,7 +63,8 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
 
 
     ranges_dict = {
-        'learning_rate': [0.01, 0.001, 0.0001, 0.00001, 0.000001],
+        # 'learning_rate': [0.01, 0.001, 0.0001, 0.00001, 0.000001],
+        'learning_rate': [0.001, 0.0001],
         'hidden_dim_drug': [4, 8, 16, 32, 64, 128, 256, 512],
         'mpnn_depth': [1, 2, 3],
         
@@ -86,10 +87,8 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                 for param_name in ranges_dict.keys():
                     if param_name == 'learning_rate':
                         completed_param_combinations[param_name].append(run.config['LR'])
-                    elif param_name in 'cls_depth':
-                        completed_param_combinations[param_name].append(len(run.config['cls_hidden_dims']))
-                    elif param_name == 'cls_hidden_size':
-                        completed_param_combinations[param_name].append(run.config['cls_hidden_dims'][0])
+                    elif param_name in 'cls_hidden_dims':
+                        completed_param_combinations[param_name].append(run.config['cls_hidden_dims'])
                     elif 'cnn_target_filters' in param_name:
                         completed_param_combinations[param_name].append(run.config['cnn_target_filters'])
                         # completed_param_combinations[param_name].append(run.config['cnn_target_filters'][int(param_name.split('_')[-1])]  if int(param_name.split('_')[-1]) < len(run.config['cnn_target_filters']) else -1)
@@ -117,18 +116,20 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         while not unseen_config_found:
             temp_config.update({param_name: random.sample(vals, 1)[0] for param_name, vals in ranges_dict.items() if param_name not in ['cnn_target_filter', 'cnn_target_kernel']}) 
             cnn_num_layers = random.randint(1, 3)
+            cls_num_layers = random.randint(1, 3)
             # temp_config['cnn_target_filters'] = random.sample(ranges_dict['cnn_target_filters'], cnn_num_layers)
             # temp_config['cnn_target_kernels'] = random.sample(ranges_dict['cnn_target_kernels'], cnn_num_layers)
             temp_config['cnn_target_filters'] = get_sizes_per_layer(cnn_num_layers, ranges_dict['cnn_target_filters'], bottleneck=False)
             temp_config['cnn_target_kernels'] = get_sizes_per_layer(cnn_num_layers, ranges_dict['cnn_target_kernels'], bottleneck=False)
+            temp_config['cls_hidden_dims'] = get_sizes_per_layer(cls_num_layers, ranges_dict['cls_hidden_size'], bottleneck=True)
             
             if completed_param_combinations_df[
                 (completed_param_combinations_df['learning_rate'] == temp_config['learning_rate']) & 
                 (completed_param_combinations_df['hidden_dim_drug'] == temp_config['hidden_dim_drug']) & 
                 (completed_param_combinations_df['hidden_dim_protein'] == temp_config['hidden_dim_protein']) & 
 
-                (completed_param_combinations_df['cls_depth'] == temp_config['cls_depth']) & 
-                (completed_param_combinations_df['cls_hidden_size'] == temp_config['cls_hidden_size']) &
+                (completed_param_combinations_df['cls_hidden_dims'].apply((temp_config['cls_hidden_dims']).__eq__)) &
+
                 (completed_param_combinations_df['cnn_target_filters'].apply((temp_config['cnn_target_filters']).__eq__)) &
                 (completed_param_combinations_df['cnn_target_kernels'].apply((temp_config['cnn_target_kernels']).__eq__)) &
                 (completed_param_combinations_df['mpnn_depth'] == temp_config['mpnn_depth'])
@@ -141,7 +142,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         print('testing the following config: '+str(temp_config))
         config = utils.generate_config(drug_encoding = drug_encoding, 
                                 target_encoding = target_encoding, 
-                                cls_hidden_dims = int(temp_config['cls_depth']) * [int(temp_config['cls_hidden_size'])], 
+                                cls_hidden_dims = temp_config['cls_hidden_dims'], 
                                 train_epoch = 100, 
                                 LR = temp_config['learning_rate'], 
                                 batch_size = 256,
