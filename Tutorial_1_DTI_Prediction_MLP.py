@@ -120,7 +120,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
             # temp_config['cnn_target_kernels'] = random.sample(ranges_dict['cnn_target_kernels'], cnn_num_layers)
             temp_config['cnn_target_filters'] = get_sizes_per_layer(cnn_num_layers, ranges_dict['cnn_target_filters'], bottleneck=False)
             temp_config['cnn_target_kernels'] = get_sizes_per_layer(cnn_num_layers, ranges_dict['cnn_target_kernels'], bottleneck=False)
-            temp_config['cls_hidden_dims'] = get_sizes_per_layer(cls_num_layers, ranges_dict['cls_hidden_size'], bottleneck=True)
+            temp_config['cls_hidden_dims'] = get_sizes_per_layer(cls_num_layers, ranges_dict['cls_hidden_dims'], bottleneck=True)
             
             if completed_param_combinations_df[
                 (completed_param_combinations_df['learning_rate'] == temp_config['learning_rate']) & 
