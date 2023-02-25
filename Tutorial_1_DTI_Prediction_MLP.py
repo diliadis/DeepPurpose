@@ -72,7 +72,6 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         'cnn_target_filters': [16, 32, 64, 128],
         'cnn_target_kernels': [4, 8, 12, 16],
 
-        'cls_depth': [1, 2, 3],
         'cls_hidden_size': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
     }
 
