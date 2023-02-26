@@ -19,7 +19,7 @@ import random
 import argparse
 
 
-def main(general_architecture_version, val_setting, cuda_id, num_workers, dataset_name, performance_threshold=1.0, wandb_project_name=wandb_project_name, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483'):
+def main(general_architecture_version, val_setting, cuda_id, num_workers, dataset_name, performance_threshold=1.0, wandb_project_name='test', wandb_dir='/data/gent/vo/000/gvo00048/vsc43483'):
     
     split_method = 'random'
     if str(val_setting) == 'B':
