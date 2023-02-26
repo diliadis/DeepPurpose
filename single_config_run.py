@@ -19,7 +19,7 @@ import random
 import argparse
 
 
-def main(general_architecture_version, val_setting, cuda_id, num_workers, dataset_name, performance_threshold=1.0, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483'):
+def main(general_architecture_version, val_setting, cuda_id, num_workers, dataset_name, performance_threshold=1.0, wandb_project_name=wandb_project_name, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483'):
     
     split_method = 'random'
     if str(val_setting) == 'B':
@@ -29,7 +29,7 @@ def main(general_architecture_version, val_setting, cuda_id, num_workers, datase
     elif str(val_setting) == 'A':
         split_method = 'random'
         
-    wandb_project_name = 'DeepPurpose_tests'
+    wandb_project_name = wandb_project_name
     wandb_project_entity = 'diliadis'
     general_architecture_version = general_architecture_version
     
@@ -61,7 +61,7 @@ def main(general_architecture_version, val_setting, cuda_id, num_workers, datase
                             hidden_dim_protein = 128,
                             mpnn_hidden_size = 128,
                             mpnn_depth = 3,
-                            cnn_target_filters = [32,64,96],
+                            cnn_target_filters = [32,64,128],
                             cnn_target_kernels = [4,8,12],
                             cls_hidden_dims = [1024,1024,512], 
                             general_architecture_version = general_architecture_version,
@@ -92,8 +92,9 @@ if __name__ == "__main__":
     parser.add_argument("--num_workers", help="the number of workers that will be used by the dataloaders")
     parser.add_argument("--dataset_name", help="the name of the dataset that will be used. (DAVIS and KIBA are the current valid options)")
     parser.add_argument("--performance_threshold", help="performance threshold checked before epoch 30")
+    parser.add_argument("--wandb_project_name", help="performance threshold checked before epoch 30")
     args = parser.parse_args()
     config = vars(args)
     
-    main(config['general_architecture_version'], config['val_setting'], config['cuda_id'], config['num_workers'], config['dataset_name'], performance_threshold=float(config['performance_threshold']))
+    main(config['general_architecture_version'], config['val_setting'], config['cuda_id'], config['num_workers'], config['dataset_name'], config['wandb_project_name'], performance_threshold=float(config['performance_threshold']))
     
