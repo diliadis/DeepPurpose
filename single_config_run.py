@@ -61,7 +61,7 @@ def main(general_architecture_version, val_setting, cuda_id, num_workers, datase
                             hidden_dim_protein = 128,
                             mpnn_hidden_size = 128,
                             mpnn_depth = 3,
-                            cnn_target_filters = [32],
+                            cnn_target_filters = [128],
                             cnn_target_kernels = [4],
                             cls_hidden_dims = [1024,1024,512], 
                             general_architecture_version = general_architecture_version,
