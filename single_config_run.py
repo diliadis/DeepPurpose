@@ -96,5 +96,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
     config = vars(args)
     
-    main(config['general_architecture_version'], config['val_setting'], config['cuda_id'], config['num_workers'], config['dataset_name'], config['wandb_project_name'], performance_threshold=float(config['performance_threshold']))
+    main(config['general_architecture_version'], config['val_setting'], config['cuda_id'], config['num_workers'], config['dataset_name'], wandb_project_name=config['wandb_project_name'], performance_threshold=float(config['performance_threshold']))
     
