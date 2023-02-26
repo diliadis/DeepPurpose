@@ -57,7 +57,7 @@ def main(general_architecture_version, val_setting, cuda_id, num_workers, datase
                             train_epoch = 100, 
                             LR = 0.001, 
                             batch_size = 256,
-                            hidden_dim_drug = 128,
+                            hidden_dim_drug = 256,
                             hidden_dim_protein = 256,
                             mpnn_hidden_size = 128,
                             mpnn_depth = 3,
