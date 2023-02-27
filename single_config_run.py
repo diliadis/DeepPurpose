@@ -56,7 +56,7 @@ def main(general_architecture_version, val_setting, cuda_id, num_workers, datase
                             target_encoding = target_encoding, 
                             # cls_hidden_dims = [1024,1024,512], 
                             train_epoch = 100, 
-                            LR = 0.001, 
+                            LR = 0.01, 
                             batch_size = 256,
                             hidden_dim_drug = 128,
                             hidden_dim_protein = 128,
