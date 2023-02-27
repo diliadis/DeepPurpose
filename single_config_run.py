@@ -17,9 +17,10 @@ import sys
 warnings.filterwarnings("ignore")
 import random
 import argparse
+import json
 
 
-def main(general_architecture_version, val_setting, cuda_id, num_workers, dataset_name, performance_threshold=1.0, wandb_project_name='test', wandb_dir='/data/gent/vo/000/gvo00048/vsc43483'):
+def main(general_architecture_version, val_setting, cuda_id, num_workers, dataset_name, performance_threshold=1.0, wandb_project_name='test', wandb_dir='/data/gent/vo/000/gvo00048/vsc43483', config_file_name=None):
     
     split_method = 'random'
     if str(val_setting) == 'B':
@@ -61,8 +62,8 @@ def main(general_architecture_version, val_setting, cuda_id, num_workers, datase
                             hidden_dim_protein = 128,
                             mpnn_hidden_size = 128,
                             mpnn_depth = 3,
-                            cnn_target_filters = [64, 128],
-                            cnn_target_kernels = [12, 16],
+                            cnn_target_filters = [32,64,96],
+                            cnn_target_kernels = [4,8,12],
                             cls_hidden_dims = [128,32,8], 
                             general_architecture_version = general_architecture_version,
                             cuda_id=str(cuda_id),
@@ -79,6 +80,12 @@ def main(general_architecture_version, val_setting, cuda_id, num_workers, datase
                             dataset_name = dataset_name.upper()
                             )
     
+    if config_file_name is not None:
+        with open(config_file_name+'.json') as json_file:
+            data = json.load(json_file)
+            print('CONFIG FILE FOUND!!! UPDATING DEFAULT CONFIG')
+        config.update(data)
+    
     model = models.model_initialize(**config)
     print(str(model.model))
     print(str(model.config))
@@ -93,8 +100,9 @@ if __name__ == "__main__":
     parser.add_argument("--dataset_name", help="the name of the dataset that will be used. (DAVIS and KIBA are the current valid options)")
     parser.add_argument("--performance_threshold", help="performance threshold checked before epoch 30")
     parser.add_argument("--wandb_project_name", help="performance threshold checked before epoch 30")
+    parser.add_argument("--config_file_name", help="name of the json file with the config to be tested.")
     args = parser.parse_args()
     config = vars(args)
     
-    main(config['general_architecture_version'], config['val_setting'], config['cuda_id'], config['num_workers'], config['dataset_name'], wandb_project_name=config['wandb_project_name'], performance_threshold=float(config['performance_threshold']))
+    main(config['general_architecture_version'], config['val_setting'], config['cuda_id'], config['num_workers'], config['dataset_name'], wandb_project_name=config['wandb_project_name'], performance_threshold=float(config['performance_threshold']), config_file_name=config['config_file_name'])
     

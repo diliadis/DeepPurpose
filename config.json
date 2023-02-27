@@ -1,0 +1,21 @@
+{
+    "cls_hidden_dims": [
+      1,
+      2,
+      3
+    ],
+    "cnn_target_filters": [
+      32,
+      64,
+      96
+    ],
+    "cnn_target_kernels": [
+      4,
+      8,
+      12
+    ],
+    "LR": 0.001,
+    "hidden_dim_drug": 128,
+    "hidden_dim_protein": 128,
+    "mpnn_depth": 3
+  }
