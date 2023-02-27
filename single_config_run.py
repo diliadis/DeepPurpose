@@ -61,7 +61,7 @@ def main(general_architecture_version, val_setting, cuda_id, num_workers, datase
                             hidden_dim_drug = 256,
                             hidden_dim_protein = 256,
                             mpnn_hidden_size = 128,
-                            mpnn_depth = 3,
+                            mpnn_depth = 4,
                             cnn_target_filters = [32,64,128],
                             cnn_target_kernels = [4,8,12],
                             cls_hidden_dims = [128,32,8], 
