@@ -53,7 +53,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
     else:
         raise AttributeError('invalid dataset name passed.')
     
-    drug_encoding, target_encoding = 'MPNN', 'CNN'
+    drug_encoding, target_encoding = 'CNN', 'CNN'
     print('Processing the dataset...')
     train, val, test = utils.data_process(X_drugs, X_targets, y,
                                 drug_encoding, target_encoding, 
@@ -66,7 +66,8 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         # 'learning_rate': [0.01, 0.001, 0.0001, 0.00001, 0.000001],
         'learning_rate': [0.001, 0.0001],
         'hidden_dim_drug': [4, 8, 16, 32, 64, 128, 256, 512],
-        'mpnn_depth': [1, 2, 3],
+        'cnn_drug_filters': [16, 32, 64, 128],
+        'cnn_drug_kernels': [4, 8, 12, 16],
         
         'hidden_dim_protein': [4, 8, 16, 32, 64, 128, 256, 512],
         'cnn_target_filters': [16, 32, 64, 128],
@@ -94,6 +95,11 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                     elif 'cnn_target_kernels' in param_name:
                         completed_param_combinations[param_name].append(run.config['cnn_target_kernels'])
                         # completed_param_combinations[param_name].append(run.config['cnn_target_kernels'][int(param_name.split('_')[-1])] if int(param_name.split('_')[-1]) < len(run.config['cnn_target_kernels']) else -1)
+                    elif 'cnn_drug_filters' in param_name:
+                        completed_param_combinations[param_name].append(run.config['cnn_drug_filters'])
+                        # completed_param_combinations[param_name].append(run.config['cnn_target_filters'][int(param_name.split('_')[-1])]  if int(param_name.split('_')[-1]) < len(run.config['cnn_target_filters']) else -1)
+                    elif 'cnn_drug_kernels' in param_name:
+                        completed_param_combinations[param_name].append(run.config['cnn_drug_kernels'])
                     else:
                         completed_param_combinations[param_name].append(run.config[param_name][0] if isinstance(run.config[param_name], list) else run.config[param_name])
                     
@@ -113,13 +119,17 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         unseen_config_found = False
         temp_config = {}
         while not unseen_config_found:
-            temp_config.update({param_name: random.sample(vals, 1)[0] for param_name, vals in ranges_dict.items() if param_name not in ['cnn_target_filter', 'cnn_target_kernel']}) 
-            cnn_num_layers = random.randint(1, 3)
+            temp_config.update({param_name: random.sample(vals, 1)[0] for param_name, vals in ranges_dict.items() if param_name not in ['cnn_target_filter', 'cnn_target_kernel', 'cnn_drug_filter', 'cnn_drug_kernel']}) 
+            cnn_num_layers_target = random.randint(1, 3)
+            cnn_num_layers_drug = random.randint(1, 3)
+
             cls_num_layers = random.randint(1, 3)
             # temp_config['cnn_target_filters'] = random.sample(ranges_dict['cnn_target_filters'], cnn_num_layers)
             # temp_config['cnn_target_kernels'] = random.sample(ranges_dict['cnn_target_kernels'], cnn_num_layers)
-            temp_config['cnn_target_filters'] = get_sizes_per_layer(cnn_num_layers, ranges_dict['cnn_target_filters'], bottleneck=False)
-            temp_config['cnn_target_kernels'] = get_sizes_per_layer(cnn_num_layers, ranges_dict['cnn_target_kernels'], bottleneck=False)
+            temp_config['cnn_target_filters'] = get_sizes_per_layer(cnn_num_layers_target, ranges_dict['cnn_target_filters'], bottleneck=False)
+            temp_config['cnn_target_kernels'] = get_sizes_per_layer(cnn_num_layers_target, ranges_dict['cnn_target_kernels'], bottleneck=False)
+            temp_config['cnn_drug_filters'] = get_sizes_per_layer(cnn_num_layers_drug, ranges_dict['cnn_drug_filters'], bottleneck=False)
+            temp_config['cnn_drug_kernels'] = get_sizes_per_layer(cnn_num_layers_drug, ranges_dict['cnn_drug_kernels'], bottleneck=False)
             temp_config['cls_hidden_dims'] = get_sizes_per_layer(cls_num_layers, ranges_dict['cls_hidden_dims'], bottleneck=True)
             
             if completed_param_combinations_df[
@@ -131,7 +141,8 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
 
                 (completed_param_combinations_df['cnn_target_filters'].apply((temp_config['cnn_target_filters']).__eq__)) &
                 (completed_param_combinations_df['cnn_target_kernels'].apply((temp_config['cnn_target_kernels']).__eq__)) &
-                (completed_param_combinations_df['mpnn_depth'] == temp_config['mpnn_depth'])
+                (completed_param_combinations_df['cnn_drug_filters'].apply((temp_config['cnn_drug_filters']).__eq__)) &
+                (completed_param_combinations_df['cnn_drug_kernels'].apply((temp_config['cnn_drug_kernels']).__eq__))
             ].empty:
                 completed_param_combinations_df = completed_param_combinations_df.append(temp_config, ignore_index=True)
                 print('NEW CONFIG FOUND: '+str(temp_config))
@@ -141,16 +152,18 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         print('testing the following config: '+str(temp_config))
         config = utils.generate_config(drug_encoding = drug_encoding, 
                                 target_encoding = target_encoding, 
-                                cls_hidden_dims = [1024, 1024, 512], #temp_config['cls_hidden_dims'], 
+                                cls_hidden_dims = temp_config['cls_hidden_dims'], 
                                 train_epoch = 100, 
-                                LR = 0.001, #temp_config['learning_rate'], 
+                                LR = temp_config['learning_rate'], 
                                 batch_size = 256,
-                                hidden_dim_drug = 128, # int(temp_config['hidden_dim_drug']),
-                                hidden_dim_protein = 128, # int(temp_config['hidden_dim_protein']),
-                                mpnn_depth = 3, # int(temp_config['mpnn_depth']),
-                                mpnn_hidden_size = 50,
-                                cnn_target_filters = [32,64,96], # temp_config['cnn_target_filters'],
-                                cnn_target_kernels = [4,8,12], # temp_config['cnn_target_kernels'],
+                                hidden_dim_drug = int(temp_config['hidden_dim_drug']),
+                                hidden_dim_protein = int(temp_config['hidden_dim_protein']),
+
+                                cnn_target_filters = temp_config['cnn_target_filters'],
+                                cnn_target_kernels = temp_config['cnn_target_kernels'],
+                                
+                                cnn_drug_filters = temp_config['cnn_drug_filters'],
+                                cnn_drug_kernels = temp_config['cnn_drug_kernels'],
                                 
                                 general_architecture_version = general_architecture_version,
                                 cuda_id=str(cuda_id),
