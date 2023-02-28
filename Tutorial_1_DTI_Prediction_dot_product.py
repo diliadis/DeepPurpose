@@ -42,7 +42,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
     else:
         raise AttributeError('Unknown validation setting detected. Please use one of the following: [A, B, C]')
         
-    wandb_project_name = 'DeepPurpose_final_optimized'
+    wandb_project_name = 'DeepPurpose_CNN_CNN'
     wandb_project_entity = 'diliadis'
     general_architecture_version = 'dot_product'
     
