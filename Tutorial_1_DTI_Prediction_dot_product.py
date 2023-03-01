@@ -74,35 +74,35 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         'cnn_drug_filters': [16, 32, 64, 128],
         'cnn_drug_kernels': [4, 8, 12, 16],
     }
-
-    api = wandb.Api()
-    entity, project = wandb_project_entity, wandb_project_name  # set to your entity and project 
-    runs = api.runs(entity + "/" + project) 
-    completed_param_combinations = {param_name: [] for param_name in ranges_dict.keys()}
-    for run in tqdm(runs):
-        if run.state == "finished":
-            if ((run.config['general_architecture_version'] == general_architecture_version) and (run.config['dataset_name'] == dataset_name) and (run.config['validation_setting'] == val_setting)):
-                for param_name in ranges_dict.keys():
-                    if param_name == 'learning_rate':
-                        completed_param_combinations[param_name].append(run.config['LR'])
-                    elif param_name == 'embedding_size':
-                        completed_param_combinations[param_name].append(run.config['hidden_dim_drug'])
-                    else:
-                        completed_param_combinations[param_name].append(run.config[param_name])
-                        
-    # dataframe with configurations already tested and logged to wandb
-    completed_param_combinations_df = pd.DataFrame(completed_param_combinations)
-    print('completed configs df: '+str(completed_param_combinations_df))
     
-    num_remaining_configs = np.prod([len(v) for k, v in ranges_dict.items()]) - len(completed_param_combinations_df) # this should be fixed!!
-
-    if num_remaining_configs != 0:
-        if num_samples > num_remaining_configs:
-            num_samples = num_remaining_configs
-            print('I will actually run '+str(num_samples)+' different configurations')
-
+    
     for experiment_id in range(num_samples):
-        
+        api = wandb.Api()
+        entity, project = wandb_project_entity, wandb_project_name  # set to your entity and project 
+        runs = api.runs(entity + "/" + project) 
+        completed_param_combinations = {param_name: [] for param_name in ranges_dict.keys()}
+        for run in tqdm(runs):
+            if run.state == "finished":
+                if ((run.config['general_architecture_version'] == general_architecture_version) and (run.config['dataset_name'] == dataset_name) and (run.config['validation_setting'] == val_setting)):
+                    for param_name in ranges_dict.keys():
+                        if param_name == 'learning_rate':
+                            completed_param_combinations[param_name].append(run.config['LR'])
+                        elif param_name == 'embedding_size':
+                            completed_param_combinations[param_name].append(run.config['hidden_dim_drug'])
+                        else:
+                            completed_param_combinations[param_name].append(run.config[param_name])
+                            
+        # dataframe with configurations already tested and logged to wandb
+        completed_param_combinations_df = pd.DataFrame(completed_param_combinations)
+        print('completed configs df: '+str(completed_param_combinations_df))
+    
+    # num_remaining_configs = np.prod([len(v) for k, v in ranges_dict.items()]) - len(completed_param_combinations_df) # this should be fixed!!
+
+    # if num_remaining_configs != 0:
+    #     if num_samples > num_remaining_configs:
+    #         num_samples = num_remaining_configs
+    #         print('I will actually run '+str(num_samples)+' different configurations')
+
         unseen_config_found = False
         temp_config = {}
         while not unseen_config_found:
