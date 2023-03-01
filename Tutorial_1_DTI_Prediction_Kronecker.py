@@ -81,7 +81,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         completed_param_combinations = {param_name: [] for param_name in ranges_dict.keys()}
         print(str(completed_param_combinations))
         for run in tqdm(runs):
-            if run.state == "finished":
+            if run.state == "crashed":
                 if ((run.config['general_architecture_version'] == general_architecture_version) and (run.config['dataset_name'] == dataset_name) and (run.config['validation_setting'] == val_setting)):
                     for param_name in ranges_dict.keys():
                         if param_name == 'learning_rate':

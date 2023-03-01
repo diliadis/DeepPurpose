@@ -83,24 +83,11 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         completed_param_combinations = {param_name: [] for param_name in ranges_dict.keys()}
         print(str(completed_param_combinations))
         for run in tqdm(runs):
-            if run.state == "finished":
+            if run.state == "crashed":
                 if ((run.config['general_architecture_version'] == general_architecture_version) and (run.config['dataset_name'] == dataset_name) and (run.config['validation_setting'] == val_setting)):
                     for param_name in ranges_dict.keys():
                         if param_name == 'learning_rate':
                             completed_param_combinations[param_name].append(run.config['LR'])
-                        elif param_name in 'cls_hidden_dims':
-                            completed_param_combinations[param_name].append(run.config['cls_hidden_dims'])
-                        elif 'cnn_target_filters' in param_name:
-                            completed_param_combinations[param_name].append(run.config['cnn_target_filters'])
-                            # completed_param_combinations[param_name].append(run.config['cnn_target_filters'][int(param_name.split('_')[-1])]  if int(param_name.split('_')[-1]) < len(run.config['cnn_target_filters']) else -1)
-                        elif 'cnn_target_kernels' in param_name:
-                            completed_param_combinations[param_name].append(run.config['cnn_target_kernels'])
-                            # completed_param_combinations[param_name].append(run.config['cnn_target_kernels'][int(param_name.split('_')[-1])] if int(param_name.split('_')[-1]) < len(run.config['cnn_target_kernels']) else -1)
-                        elif 'cnn_drug_filters' in param_name:
-                            completed_param_combinations[param_name].append(run.config['cnn_drug_filters'])
-                            # completed_param_combinations[param_name].append(run.config['cnn_target_filters'][int(param_name.split('_')[-1])]  if int(param_name.split('_')[-1]) < len(run.config['cnn_target_filters']) else -1)
-                        elif 'cnn_drug_kernels' in param_name:
-                            completed_param_combinations[param_name].append(run.config['cnn_drug_kernels'])
                         else:
                             completed_param_combinations[param_name].append(run.config[param_name][0] if isinstance(run.config[param_name], list) else run.config[param_name])
                         
@@ -116,11 +103,10 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         #         print('I will actually run '+str(num_samples)+' different configurations')
     
 
-        
         unseen_config_found = False
         temp_config = {}
         while not unseen_config_found:
-            temp_config.update({param_name: random.sample(vals, 1)[0] for param_name, vals in ranges_dict.items() if param_name not in ['cnn_target_filter', 'cnn_target_kernel', 'cnn_drug_filter', 'cnn_drug_kernel']}) 
+            temp_config.update({param_name: random.sample(vals, 1)[0] for param_name, vals in ranges_dict.items() if param_name not in ['cnn_target_filter', 'cnn_target_kernel', 'cnn_drug_filter', 'cnn_drug_kernel', 'cls_hidden_dims']}) 
             cnn_num_layers_target = random.randint(1, 3)
             cnn_num_layers_drug = random.randint(1, 3)
 
@@ -147,7 +133,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
             ].empty:
                 completed_param_combinations_df = completed_param_combinations_df.append(temp_config, ignore_index=True)
                 print('NEW CONFIG FOUND: '+str(temp_config))
-                print('The dataframe now containts: '+str(completed_param_combinations_df))
+                # print('The dataframe now containts: '+str(completed_param_combinations_df))
                 unseen_config_found = True 
 
         print('testing the following config: '+str(temp_config))
