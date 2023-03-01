@@ -87,8 +87,10 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                 
                 while True:
                     if 'general_architecture_version' in temp_run.config:
+                        print('valid run!')
                         break
                     else:
+                        print('loading run:'+str(temp_run.id)+' again')
                         temp_run = api.run(entity + "/" + project + "/" + temp_run.id)
                 
                 if ((temp_run.config['general_architecture_version'] == general_architecture_version) and (temp_run.config['dataset_name'] == dataset_name) and (temp_run.config['validation_setting'] == val_setting)):
