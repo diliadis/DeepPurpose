@@ -138,7 +138,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         config = utils.generate_config(drug_encoding = drug_encoding, 
                                 target_encoding = target_encoding, 
                                 # cls_hidden_dims = [1024,1024,512], 
-                                train_epoch = 200, 
+                                train_epoch = 100, 
                                 LR = temp_config['learning_rate'], 
                                 batch_size = 256,
                                 hidden_dim_drug = int(temp_config['embedding_size']),
