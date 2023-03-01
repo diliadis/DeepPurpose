@@ -82,24 +82,32 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         print(str(completed_param_combinations))
         for run in tqdm(runs):
             if run.state != "crashed":
-                print(str(run.id))
-                if ((run.config['general_architecture_version'] == general_architecture_version) and (run.config['dataset_name'] == dataset_name) and (run.config['validation_setting'] == val_setting)):
+                temp_run = run
+                print(str(temp_run.id))
+                
+                while True:
+                    if 'general_architecture_version' in temp_run.config:
+                        break
+                    else:
+                        temp_run = api.run(entity + "/" + project + "/" + temp_run.id)
+                
+                if ((temp_run.config['general_architecture_version'] == general_architecture_version) and (temp_run.config['dataset_name'] == dataset_name) and (temp_run.config['validation_setting'] == val_setting)):
                     for param_name in ranges_dict.keys():
                         if param_name == 'learning_rate':
-                            completed_param_combinations[param_name].append(run.config['LR'])
+                            completed_param_combinations[param_name].append(temp_run.config['LR'])
                         elif 'cnn_target_filters' in param_name:
-                            completed_param_combinations[param_name].append(run.config['cnn_target_filters'])
+                            completed_param_combinations[param_name].append(temp_run.config['cnn_target_filters'])
                             # completed_param_combinations[param_name].append(run.config['cnn_target_filters'][int(param_name.split('_')[-1])]  if int(param_name.split('_')[-1]) < len(run.config['cnn_target_filters']) else -1)
                         elif 'cnn_target_kernels' in param_name:
-                            completed_param_combinations[param_name].append(run.config['cnn_target_kernels'])
+                            completed_param_combinations[param_name].append(temp_run.config['cnn_target_kernels'])
                             # completed_param_combinations[param_name].append(run.config['cnn_target_kernels'][int(param_name.split('_')[-1])] if int(param_name.split('_')[-1]) < len(run.config['cnn_target_kernels']) else -1)
                         elif 'cnn_drug_filters' in param_name:
-                            completed_param_combinations[param_name].append(run.config['cnn_drug_filters'])
+                            completed_param_combinations[param_name].append(temp_run.config['cnn_drug_filters'])
                             # completed_param_combinations[param_name].append(run.config['cnn_target_filters'][int(param_name.split('_')[-1])]  if int(param_name.split('_')[-1]) < len(run.config['cnn_target_filters']) else -1)
                         elif 'cnn_drug_kernels' in param_name:
-                            completed_param_combinations[param_name].append(run.config['cnn_drug_kernels'])
+                            completed_param_combinations[param_name].append(temp_run.config['cnn_drug_kernels'])
                         else:
-                            completed_param_combinations[param_name].append(run.config[param_name][0] if isinstance(run.config[param_name], list) else run.config[param_name])
+                            completed_param_combinations[param_name].append(temp_run.config[param_name][0] if isinstance(temp_run.config[param_name], list) else temp_run.config[param_name])
         # dataframe with configurations already tested and logged to wandb
         completed_param_combinations_df = pd.DataFrame(completed_param_combinations)
         print('completed configs df: '+str(completed_param_combinations_df))

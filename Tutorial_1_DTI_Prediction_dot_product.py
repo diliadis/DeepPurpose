@@ -83,15 +83,23 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         completed_param_combinations = {param_name: [] for param_name in ranges_dict.keys()}
         for run in tqdm(runs):
             if run.state != "crashed":
-                print(str(run.id))
-                if ((run.config['general_architecture_version'] == general_architecture_version) and (run.config['dataset_name'] == dataset_name) and (run.config['validation_setting'] == val_setting)):
+                temp_run = run
+                print(str(temp_run.id))
+                
+                while True:
+                    if 'general_architecture_version' in temp_run.config:
+                        break
+                    else:
+                        temp_run = api.run(entity + "/" + project + "/" + temp_run.id)
+                        
+                if ((temp_run.config['general_architecture_version'] == general_architecture_version) and (temp_run.config['dataset_name'] == dataset_name) and (temp_run.config['validation_setting'] == val_setting)):
                     for param_name in ranges_dict.keys():
                         if param_name == 'learning_rate':
-                            completed_param_combinations[param_name].append(run.config['LR'])
+                            completed_param_combinations[param_name].append(temp_run.config['LR'])
                         elif param_name == 'embedding_size':
-                            completed_param_combinations[param_name].append(run.config['hidden_dim_drug'])
+                            completed_param_combinations[param_name].append(temp_run.config['hidden_dim_drug'])
                         else:
-                            completed_param_combinations[param_name].append(run.config[param_name])
+                            completed_param_combinations[param_name].append(temp_run.config[param_name])
                             
         # dataframe with configurations already tested and logged to wandb
         completed_param_combinations_df = pd.DataFrame(completed_param_combinations)
