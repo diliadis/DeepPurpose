@@ -81,7 +81,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
     api = wandb.Api()
     entity, project = wandb_project_entity, wandb_project_name  # set to your entity and project 
     
-    for experiment_id in range(num_samples):
+    for experiment_id in tqdm(num_samples):
         # runs = api.runs(entity + "/" + project) 
         runs = api.runs(entity + "/" + project, filters={"config.general_architecture_version": general_architecture_version, "config.dataset_name": dataset_name, "config.validation_setting": val_setting}, order="+created_at")
         print('Just loaded '+str(len(runs))+' runs.')
@@ -90,12 +90,10 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
             print(str(run.id))
             if run.state != "crashed":
                 temp_run = run
-                print('temp_run.state: '+str(temp_run.state))
                 if temp_run.state == 'running':
                     print('Detected a running process. Sleeping for 30 secs')
                     time.sleep(30)
-                print(str(temp_run.id))
-                print(str(temp_run.config))
+
                 # while True:
                 #     if 'general_architecture_version' in temp_run.config:
                 #         print('valid run!')

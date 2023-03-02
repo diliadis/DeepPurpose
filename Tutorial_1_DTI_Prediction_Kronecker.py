@@ -87,12 +87,10 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         for run in tqdm(runs):
             if run.state != "crashed":
                 temp_run = run
-                print('temp_run.state: '+str(temp_run.state))
                 if temp_run.state == 'running':
                     print('Detected a running process. Sleeping for 30 secs')
                     time.sleep(30)
-                print(str(temp_run.id))
-                print(str(temp_run.config))
+                    
                 # while True:
                 #     if 'general_architecture_version' in temp_run.config:
                 #         print('valid run!')
