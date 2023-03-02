@@ -80,7 +80,8 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
     for experiment_id in range(num_samples):
         api = wandb.Api()
         entity, project = wandb_project_entity, wandb_project_name  # set to your entity and project 
-        runs = api.runs(entity + "/" + project) 
+        # runs = api.runs(entity + "/" + project) 
+        runs = api.runs(entity + "/" + project, filters={"config.general_architecture_version": general_architecture_version, "config.dataset_name": dataset_name, "config.validation_setting": val_setting}, order="+created_at")
         completed_param_combinations = {param_name: [] for param_name in ranges_dict.keys()}
         print(str(completed_param_combinations))
         for run in tqdm(runs):
