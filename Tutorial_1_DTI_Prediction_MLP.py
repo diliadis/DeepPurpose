@@ -81,13 +81,12 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
     api = wandb.Api()
     entity, project = wandb_project_entity, wandb_project_name  # set to your entity and project 
     
-    for experiment_id in tqdm(num_samples):
+    for experiment_id in range(num_samples):
         # runs = api.runs(entity + "/" + project) 
         runs = api.runs(entity + "/" + project, filters={"config.general_architecture_version": general_architecture_version, "config.dataset_name": dataset_name, "config.validation_setting": val_setting}, order="+created_at")
         print('Just loaded '+str(len(runs))+' runs.')
         completed_param_combinations = {param_name: [] for param_name in ranges_dict.keys()}
-        for run in runs:
-            print(str(run.id))
+        for run in tqdm(runs):
             if run.state != "crashed":
                 temp_run = run
                 if temp_run.state == 'running':
