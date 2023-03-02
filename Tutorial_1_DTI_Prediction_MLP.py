@@ -86,6 +86,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         print('Just loaded '+str(len(runs))+' runs.')
         completed_param_combinations = {param_name: [] for param_name in ranges_dict.keys()}
         for run in tqdm(runs):
+            print(str(run.id))
             if run.state != "crashed":
                 temp_run = run
                 print('temp_run.state: '+str(temp_run.state))
