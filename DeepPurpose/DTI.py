@@ -460,6 +460,7 @@ class DBTA:
     def test_(self, data_generator, model, repurposing_mode = False, test = False):
         y_pred = []
         y_label = []
+        loss_history = []
         model.eval()
         for i, (v_d, v_p, label) in enumerate(data_generator):
             if self.drug_encoding in ["MPNN", 'Transformer', 'DGL_GCN', 'DGL_NeuralFP', 'DGL_GIN_AttrMasking', 'DGL_GIN_ContextPred', 'DGL_AttentiveFP']:
@@ -488,6 +489,7 @@ class DBTA:
                 loss_fct = torch.nn.MSELoss()
                 n = torch.squeeze(score, 1)
                 loss = loss_fct(n, Variable(torch.from_numpy(np.array(label)).float()).to(self.device))
+                loss_history.append(loss.item())
                 logits = torch.squeeze(score).detach().cpu().numpy()
             label_ids = label.to('cpu').numpy()
             y_label = y_label + label_ids.flatten().tolist()
@@ -510,7 +512,7 @@ class DBTA:
         else:
             if repurposing_mode:
                 return y_pred
-            return mean_squared_error(y_label, y_pred), pearsonr(y_label, y_pred)[0], pearsonr(y_label, y_pred)[1], concordance_index(y_label, y_pred), r2_score(y_label, y_pred), y_pred, loss
+            return mean_squared_error(y_label, y_pred), pearsonr(y_label, y_pred)[0], pearsonr(y_label, y_pred)[1], concordance_index(y_label, y_pred), r2_score(y_label, y_pred), y_pred, np.mean(loss_history)
 
     def train(self, train, val = None, test = None, verbose = True):
         if len(train.Label.unique()) == 2:
