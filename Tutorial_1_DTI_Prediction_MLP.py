@@ -85,6 +85,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         print(str(completed_param_combinations))
         for run in tqdm(runs):
             if run.state != "crashed":
+                print('temp_run.state: '+str(temp_run.state))
                 temp_run = run
                 if temp_run.state == 'running':
                     print('Detected a running process. Sleeping for 30 secs')
