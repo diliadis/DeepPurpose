@@ -81,7 +81,6 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         runs = api.runs(entity + "/" + project, filters={"config.general_architecture_version": general_architecture_version, "config.dataset_name": dataset_name, "config.validation_setting": val_setting}, order="+created_at")
         # runs = api.runs(entity + "/" + project) 
         completed_param_combinations = {param_name: [] for param_name in ranges_dict.keys()}
-        print(str(completed_param_combinations))
         for run in tqdm(runs):
             if run.state != "crashed":
                 temp_run = run
@@ -116,6 +115,9 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                             completed_param_combinations[param_name].append(temp_run.config['cnn_drug_kernels'])
                         else:
                             completed_param_combinations[param_name].append(temp_run.config[param_name][0] if isinstance(temp_run.config[param_name], list) else temp_run.config[param_name])
+            else:
+                print('run has crashed: '+str(run.state))  
+                
         # dataframe with configurations already tested and logged to wandb
         completed_param_combinations_df = pd.DataFrame(completed_param_combinations)
         print('completed configs df: '+str(completed_param_combinations_df))

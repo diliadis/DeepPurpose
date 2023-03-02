@@ -108,7 +108,8 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                             completed_param_combinations[param_name].append(temp_run.config['hidden_dim_drug'])
                         else:
                             completed_param_combinations[param_name].append(temp_run.config[param_name])
-                            
+            else:
+                print('run has crashed: '+str(run.state))       
         # dataframe with configurations already tested and logged to wandb
         completed_param_combinations_df = pd.DataFrame(completed_param_combinations)
         print('completed configs df: '+str(completed_param_combinations_df))
