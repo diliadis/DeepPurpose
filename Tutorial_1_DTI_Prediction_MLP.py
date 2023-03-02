@@ -109,7 +109,9 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                         if param_name == 'learning_rate':
                             completed_param_combinations[param_name].append(temp_run.config['LR'])
                         else:
-                            completed_param_combinations[param_name].append(temp_run.config[param_name][0] if isinstance(temp_run.config[param_name], list) else temp_run.config[param_name])
+                            completed_param_combinations[param_name].append(temp_run.config[param_name])
+                        # else:
+                        #     completed_param_combinations[param_name].append(temp_run.config[param_name][0] if isinstance(temp_run.config[param_name], list) else temp_run.config[param_name])
             else:
                 print('run has crashed: '+str(run.state))  
         # dataframe with configurations already tested and logged to wandb
@@ -130,7 +132,6 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
             temp_config.update({param_name: random.sample(vals, 1)[0] for param_name, vals in ranges_dict.items() if param_name not in ['cnn_target_filter', 'cnn_target_kernel', 'cnn_drug_filter', 'cnn_drug_kernel', 'cls_hidden_dims']}) 
             cnn_num_layers_target = random.randint(1, 3)
             cnn_num_layers_drug = random.randint(1, 3)
-
             cls_num_layers = random.randint(1, 3)
             # temp_config['cnn_target_filters'] = random.sample(ranges_dict['cnn_target_filters'], cnn_num_layers)
             # temp_config['cnn_target_kernels'] = random.sample(ranges_dict['cnn_target_kernels'], cnn_num_layers)

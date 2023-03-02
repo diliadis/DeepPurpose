@@ -117,7 +117,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                         elif 'cnn_drug_kernels' in param_name:
                             completed_param_combinations[param_name].append(temp_run.config['cnn_drug_kernels'])
                         else:
-                            completed_param_combinations[param_name].append(temp_run.config[param_name][0] if isinstance(temp_run.config[param_name], list) else temp_run.config[param_name])
+                            completed_param_combinations[param_name].append(temp_run.config[param_name])
             else:
                 print('run has crashed: '+str(run.state))  
                 
