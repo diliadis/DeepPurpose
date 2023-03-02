@@ -17,6 +17,7 @@ import sys
 warnings.filterwarnings("ignore")
 import random
 import argparse
+import time
 
 def get_sizes_per_layer(num_layers, layer_sizes_range, bottleneck=False):
     sizes_per_layer = []
@@ -85,15 +86,18 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         for run in tqdm(runs):
             if run.state != "crashed":
                 temp_run = run
+                if temp_run.state == 'running':
+                    print('Detected a running process. Sleeping for 30 secs')
+                    time.sleep(30)
                 print(str(temp_run.id))
                 
-                while True:
-                    if 'general_architecture_version' in temp_run.config:
-                        print('valid run!')
-                        break
-                    else:
-                        print('loading run:'+str(temp_run.id)+' again')
-                        temp_run = api.run(entity + "/" + project + "/" + temp_run.id)
+                # while True:
+                #     if 'general_architecture_version' in temp_run.config:
+                #         print('valid run!')
+                #         break
+                #     else:
+                #         print('loading run:'+str(temp_run.id)+' again')
+                #         temp_run = api.run(entity + "/" + project + "/" + temp_run.id)
                         
                 if ((temp_run.config['general_architecture_version'] == general_architecture_version) and (temp_run.config['dataset_name'] == dataset_name) and (temp_run.config['validation_setting'] == val_setting)):
                     for param_name in ranges_dict.keys():
