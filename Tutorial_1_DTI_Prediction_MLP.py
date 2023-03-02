@@ -31,8 +31,9 @@ def get_sizes_per_layer(num_layers, layer_sizes_range, bottleneck=False):
     return sizes_per_layer
 
 def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performance_threshold=1.0, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483'):
+    print('Hello there')
     num_samples = int(num_samples)
-    
+    print('num_samples: '+str(num_samples))
     split_method = 'random'
     if str(val_setting) == 'B':
         split_method = 'cold_drug'
