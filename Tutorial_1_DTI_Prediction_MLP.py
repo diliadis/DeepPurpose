@@ -78,11 +78,12 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         'cls_hidden_dims': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
     }
     
-    api = wandb.Api()
+
     entity, project = wandb_project_entity, wandb_project_name  # set to your entity and project 
     
     for experiment_id in range(num_samples):
         # runs = api.runs(entity + "/" + project) 
+        api = wandb.Api()
         runs = api.runs(entity + "/" + project, filters={"config.general_architecture_version": general_architecture_version, "config.dataset_name": dataset_name, "config.validation_setting": val_setting}, order="+created_at")
         print('Just loaded '+str(len(runs))+' runs.')
         completed_param_combinations = {param_name: [] for param_name in ranges_dict.keys()}
@@ -91,7 +92,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                 print(str(run.id))
                 temp_run = run
                 if temp_run.state == 'running':
-                    print('Detected a running process. Sleeping for 30 secs')
+                    print('Detected a running process: '+str(temp_run.id)+'. Sleeping for 30 secs')
                     time.sleep(30)
 
                 # while True:
@@ -102,14 +103,14 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                 #         print('loading run:'+str(temp_run.id)+' again')
                 #         temp_run = api.run(entity + "/" + project + "/" + temp_run.id)
                         
-                if ((temp_run.config['general_architecture_version'] == general_architecture_version) and (temp_run.config['dataset_name'] == dataset_name) and (temp_run.config['validation_setting'] == val_setting)):
-                    for param_name in ranges_dict.keys():
-                        if param_name == 'learning_rate':
-                            completed_param_combinations[param_name].append(temp_run.config['LR'])
-                        else:
-                            completed_param_combinations[param_name].append(temp_run.config[param_name])
-                        # else:
-                        #     completed_param_combinations[param_name].append(temp_run.config[param_name][0] if isinstance(temp_run.config[param_name], list) else temp_run.config[param_name])
+                # if ((temp_run.config['general_architecture_version'] == general_architecture_version) and (temp_run.config['dataset_name'] == dataset_name) and (temp_run.config['validation_setting'] == val_setting)):
+                for param_name in ranges_dict.keys():
+                    if param_name == 'learning_rate':
+                        completed_param_combinations[param_name].append(temp_run.config['LR'])
+                    else:
+                        completed_param_combinations[param_name].append(temp_run.config[param_name])
+                    # else:
+                    #     completed_param_combinations[param_name].append(temp_run.config[param_name][0] if isinstance(temp_run.config[param_name], list) else temp_run.config[param_name])
             else:
                 print('run has crashed: '+str(run.state))  
         # dataframe with configurations already tested and logged to wandb
