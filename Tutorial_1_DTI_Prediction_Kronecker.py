@@ -76,11 +76,12 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
 
     }
     
-    api = wandb.Api()
+
     entity, project = wandb_project_entity, wandb_project_name  # set to your entity and project 
     
     for experiment_id in range(num_samples):
         # runs = api.runs(entity + "/" + project)
+        api = wandb.Api()
         runs = api.runs(entity + "/" + project, filters={"config.general_architecture_version": general_architecture_version, "config.dataset_name": dataset_name, "config.validation_setting": val_setting}, order="+created_at")
         print('Just loaded '+str(len(runs))+' runs.')
         completed_param_combinations = {param_name: [] for param_name in ranges_dict.keys()}
@@ -100,23 +101,23 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                 #         print('loading run:'+str(temp_run.id)+' again')
                 #         temp_run = api.run(entity + "/" + project + "/" + temp_run.id)
                 
-                if ((temp_run.config['general_architecture_version'] == general_architecture_version) and (temp_run.config['dataset_name'] == dataset_name) and (temp_run.config['validation_setting'] == val_setting)):
-                    for param_name in ranges_dict.keys():
-                        if param_name == 'learning_rate':
-                            completed_param_combinations[param_name].append(temp_run.config['LR'])
-                        elif 'cnn_target_filters' in param_name:
-                            completed_param_combinations[param_name].append(temp_run.config['cnn_target_filters'])
-                            # completed_param_combinations[param_name].append(run.config['cnn_target_filters'][int(param_name.split('_')[-1])]  if int(param_name.split('_')[-1]) < len(run.config['cnn_target_filters']) else -1)
-                        elif 'cnn_target_kernels' in param_name:
-                            completed_param_combinations[param_name].append(temp_run.config['cnn_target_kernels'])
-                            # completed_param_combinations[param_name].append(run.config['cnn_target_kernels'][int(param_name.split('_')[-1])] if int(param_name.split('_')[-1]) < len(run.config['cnn_target_kernels']) else -1)
-                        elif 'cnn_drug_filters' in param_name:
-                            completed_param_combinations[param_name].append(temp_run.config['cnn_drug_filters'])
-                            # completed_param_combinations[param_name].append(run.config['cnn_target_filters'][int(param_name.split('_')[-1])]  if int(param_name.split('_')[-1]) < len(run.config['cnn_target_filters']) else -1)
-                        elif 'cnn_drug_kernels' in param_name:
-                            completed_param_combinations[param_name].append(temp_run.config['cnn_drug_kernels'])
-                        else:
-                            completed_param_combinations[param_name].append(temp_run.config[param_name])
+                # if ((temp_run.config['general_architecture_version'] == general_architecture_version) and (temp_run.config['dataset_name'] == dataset_name) and (temp_run.config['validation_setting'] == val_setting)):
+                for param_name in ranges_dict.keys():
+                    if param_name == 'learning_rate':
+                        completed_param_combinations[param_name].append(temp_run.config['LR'])
+                    elif 'cnn_target_filters' in param_name:
+                        completed_param_combinations[param_name].append(temp_run.config['cnn_target_filters'])
+                        # completed_param_combinations[param_name].append(run.config['cnn_target_filters'][int(param_name.split('_')[-1])]  if int(param_name.split('_')[-1]) < len(run.config['cnn_target_filters']) else -1)
+                    elif 'cnn_target_kernels' in param_name:
+                        completed_param_combinations[param_name].append(temp_run.config['cnn_target_kernels'])
+                        # completed_param_combinations[param_name].append(run.config['cnn_target_kernels'][int(param_name.split('_')[-1])] if int(param_name.split('_')[-1]) < len(run.config['cnn_target_kernels']) else -1)
+                    elif 'cnn_drug_filters' in param_name:
+                        completed_param_combinations[param_name].append(temp_run.config['cnn_drug_filters'])
+                        # completed_param_combinations[param_name].append(run.config['cnn_target_filters'][int(param_name.split('_')[-1])]  if int(param_name.split('_')[-1]) < len(run.config['cnn_target_filters']) else -1)
+                    elif 'cnn_drug_kernels' in param_name:
+                        completed_param_combinations[param_name].append(temp_run.config['cnn_drug_kernels'])
+                    else:
+                        completed_param_combinations[param_name].append(temp_run.config[param_name])
             else:
                 print('run has crashed: '+str(run.state))  
                 
