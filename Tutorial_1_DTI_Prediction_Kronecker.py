@@ -178,6 +178,9 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                 print('The dataframe now containts: '+str(completed_param_combinations_df))
                 unseen_config_found = True 
 
+        completed_param_combinations_df.to_pickle(update_file)  
+        file_lock.release()
+
         print('testing the following config: '+str(temp_config))
         config = utils.generate_config(drug_encoding = drug_encoding, 
                                 target_encoding = target_encoding, 
