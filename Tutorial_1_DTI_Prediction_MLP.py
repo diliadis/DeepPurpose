@@ -18,6 +18,7 @@ warnings.filterwarnings("ignore")
 import random
 import argparse
 import time
+import threading
 
 def get_sizes_per_layer(num_layers, layer_sizes_range, bottleneck=False):
     sizes_per_layer = []
@@ -78,10 +79,14 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         'cls_hidden_dims': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
     }
     
+    
+    # check if the file exists
+    update_file = dataset_name+'_'+general_architecture_version+'_'+val_setting+'.pickle'
 
     entity, project = wandb_project_entity, wandb_project_name  # set to your entity and project 
-    
     for experiment_id in range(num_samples):
+        
+        '''
         # runs = api.runs(entity + "/" + project) 
         api = wandb.Api()
         runs = api.runs(entity + "/" + project, filters={"config.general_architecture_version": general_architecture_version, "config.dataset_name": dataset_name, "config.validation_setting": val_setting}, order="+created_at")
@@ -113,8 +118,20 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                     #     completed_param_combinations[param_name].append(temp_run.config[param_name][0] if isinstance(temp_run.config[param_name], list) else temp_run.config[param_name])
             else:
                 print('run has crashed: '+str(run.state))  
-        # dataframe with configurations already tested and logged to wandb
+            
         completed_param_combinations_df = pd.DataFrame(completed_param_combinations)
+
+        '''
+        # dataframe with configurations already tested and logged to wandb
+        file_lock = threading.Lock()
+        print('Getting lock....')
+        file_lock.acquire()
+        print('Got it!!!')
+        # Open the file in read mode
+        print('Reading file...')
+        completed_param_combinations_df = pd.read_pickle(update_file)
+        print('Done.')
+        
         print('completed configs df: '+str(completed_param_combinations_df))
         
         # num_remaining_configs = np.prod([len(v) for k, v in ranges_dict.items()]) - len(completed_param_combinations_df) 
@@ -156,7 +173,10 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                 print('NEW CONFIG FOUND: '+str(temp_config))
                 # print('The dataframe now containts: '+str(completed_param_combinations_df))
                 unseen_config_found = True 
-
+                
+        completed_param_combinations_df.to_pickle(update_file)  
+        file_lock.release()
+        
         print('testing the following config: '+str(temp_config))
         config = utils.generate_config(drug_encoding = drug_encoding, 
                                 target_encoding = target_encoding, 
