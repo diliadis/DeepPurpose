@@ -18,6 +18,7 @@ warnings.filterwarnings("ignore")
 import random
 import argparse
 import time
+import threading
 
 def get_sizes_per_layer(num_layers, layer_sizes_range, bottleneck=False):
     sizes_per_layer = []
@@ -76,10 +77,13 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
 
     }
     
+    # check if the file exists
+    update_file = dataset_name+'_'+general_architecture_version+'_'+val_setting+'.pickle'
 
     entity, project = wandb_project_entity, wandb_project_name  # set to your entity and project 
     
     for experiment_id in range(num_samples):
+        '''
         # runs = api.runs(entity + "/" + project)
         api = wandb.Api()
         runs = api.runs(entity + "/" + project, filters={"config.general_architecture_version": general_architecture_version, "config.dataset_name": dataset_name, "config.validation_setting": val_setting}, order="+created_at")
@@ -123,6 +127,17 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                 
         # dataframe with configurations already tested and logged to wandb
         completed_param_combinations_df = pd.DataFrame(completed_param_combinations)
+        '''
+        
+        file_lock = threading.Lock()
+        print('Getting lock....')
+        file_lock.acquire()
+        print('Got it!!!')
+        # Open the file in read mode
+        print('Reading file...')
+        completed_param_combinations_df = pd.read_pickle(update_file)
+        print('Done.')
+        
         print('completed configs df: '+str(completed_param_combinations_df))
     
     # num_remaining_configs = np.prod([len(v) for k, v in ranges_dict.items()]) - len(completed_param_combinations_df) 
