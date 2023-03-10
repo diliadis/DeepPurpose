@@ -13,12 +13,12 @@ import argparse
 import threading
 import os
 
-def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_name, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483', source_validation_setting='A', target_validation_setting='B', dataset_name='DAVIS'):
+def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_name, source_validation_setting, target_validation_setting, dataset_name, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483'):
     
     api = wandb.Api()
     entity, source_project = 'diliadis', source_wandb_project_name  # set to your entity and project 
-    # source_runs = api.runs(entity + "/" + source_project, filters={"config.validation_setting": source_validation_setting, "config.dataset_name": dataset_name}, order="+created_at")
-    source_runs = api.runs(entity + "/" + source_project)
+    source_runs = api.runs(entity + "/" + source_project, filters={"config.validation_setting": source_validation_setting, "config.dataset_name": dataset_name}, order="+created_at")
+    # source_runs = api.runs(entity + "/" + source_project)
 
     print(str(len(source_runs))+' runs loaded')
     for run in source_runs:
