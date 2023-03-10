@@ -30,7 +30,7 @@ def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_n
 
     print(str(len(source_runs))+' runs loaded')
     for run in source_runs:
-        if run.state == 'finished':
+        if run.state != 'crashed':
             source_config = {k: v for k, v in run.config.items() if not k.startswith('_')}
 
             if target_validation_setting == 'B':
