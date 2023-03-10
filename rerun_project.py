@@ -18,6 +18,7 @@ def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_n
     api = wandb.Api()
     entity, source_project = 'diliadis', source_wandb_project_name  # set to your entity and project 
     source_runs = api.runs(entity + "/" + source_project, filters={"config.validation_setting": source_validation_setting, "config.dataset_name": dataset_name}, order="+created_at")
+    print(str(len(source_runs))+' runs loaded')
     for run in source_runs:
         if run.state == 'finished':
             source_config = {k: v for k, v in run.config.items() if not k.startswith('_')}
