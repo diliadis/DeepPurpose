@@ -68,8 +68,8 @@ if __name__ == "__main__":
     parser.add_argument("--num_workers", help="the number of workers that will be used by the dataloaders")
     parser.add_argument("--source_wandb_project_name", help="name of the source wandb project from which I will select configurations to extend")
     parser.add_argument("--target_wandb_project_name", help="name of the target wandb project where I will save the extended configurations")
-    parser.add_argument("--target_wandb_project_name", help="validation_setting")
     parser.add_argument("--source_validation_setting", help="validation_setting")
+    parser.add_argument("--target_validation_setting", help="validation_setting")
 
     parser.add_argument("--dataset_name", help="dataset_name")
 
