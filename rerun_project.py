@@ -63,9 +63,10 @@ def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_n
                                     wandb_dir = wandb_dir,
                                     num_workers=int(num_workers),
                                     parent_wandb_id = run.id,
+                                    dataset_name = dataset_name
             )
             
-            config.update({k: v for k,v in source_config.items() if k not in ['device', 'cuda_id', 'wandb_dir', 'num_workers', 'wandb_project_name']})
+            config.update({k: v for k,v in source_config.items() if k not in ['device', 'cuda_id', 'wandb_dir', 'num_workers', 'dataset_name', 'wandb_project_name']})
             
             model = models.model_initialize(**config)
             print(str(model.model))
