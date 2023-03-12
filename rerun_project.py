@@ -15,17 +15,14 @@ import os
 
 def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_name, source_validation_setting, target_validation_setting, dataset_name, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483'):
     
-    print('cuda_id: '+str(cuda_id))
-    print('num_workers: '+str(num_workers))
-    print('source_wandb_project_name: '+str(source_wandb_project_name))
-    print('target_wandb_project_name: '+str(target_wandb_project_name))
-    print('source_validation_setting: '+str(source_validation_setting))
-    print('target_validation_setting: '+str(target_validation_setting))
-    print('dataset_name: '+str(dataset_name))
-
+    run_ids_list = ['2odxpo8f', 'l1f0o9x6', '1tg1mh0j', '37q7zgww']
+    
     api = wandb.Api()
     entity, source_project = 'diliadis', source_wandb_project_name  # set to your entity and project 
-    source_runs = api.runs(entity + "/" + source_project, filters={"config.validation_setting": source_validation_setting, "config.dataset_name": dataset_name}, order="+created_at")
+    if len(run_ids_list) == 0:
+        source_runs = api.runs(entity + "/" + source_project, filters={"config.validation_setting": source_validation_setting, "config.dataset_name": dataset_name}, order="+created_at")
+    else:
+        source_runs = [ api.run(entity + "/" + source_project + "/" + run_id) for run_id in run_ids_list]
     # source_runs = api.runs(entity + "/" + source_project)
 
     print(str(len(source_runs))+' runs loaded')
