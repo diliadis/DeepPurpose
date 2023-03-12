@@ -15,7 +15,20 @@ import os
 
 def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_name, source_validation_setting, target_validation_setting, dataset_name, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483'):
     
-    run_ids_list = ['2odxpo8f', 'l1f0o9x6', '1tg1mh0j', '37q7zgww']
+    run_ids_list = ['1rqs9vci', 
+                    '2hwzvqkv', 
+                    '2013kul5',
+                    '1ww0jpmc'
+                    '1rv5fc81',
+                    '1qbukn8t',
+                    '3e3nahsv',
+                    'ih7mtdzt',
+                    '3zzvoi71',
+                    '1x65f2ak',
+                    '1vliy8wy',
+                    '3j3z0wva',
+                    '1yxpibtt'
+                    ]
     
     api = wandb.Api()
     entity, source_project = 'diliadis', source_wandb_project_name  # set to your entity and project 
