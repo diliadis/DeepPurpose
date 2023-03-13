@@ -15,8 +15,7 @@ import os
 
 def main(cuda_id, num_workers, source_wandb_project_name, target_wandb_project_name, source_validation_setting, target_validation_setting, dataset_name, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483'):
     
-    run_ids_list = ['2013kul5',
-                    '1ww0jpmc',
+    run_ids_list = ['1ww0jpmc',
                     '1rv5fc81',
                     '1qbukn8t',
                     '3e3nahsv',
