@@ -368,7 +368,7 @@ class DBTA:
         elif drug_encoding == 'Transformer':
             self.model_drug = transformer('drug', **config)
         elif drug_encoding == 'MPNN':
-            self.model_drug = MPNN(config['hidden_dim_drug'], config['mpnn_depth'], device = config['device'])
+            self.model_drug = MPNN(config['hidden_dim_drug'], config['mpnn_depth'], device = config['device'], num_FC_layers=config.get('MPNN_FC_num_layers', None))
         elif drug_encoding == 'DGL_GCN':
             self.model_drug = DGL_GCN(in_feats = 74, 
                                     hidden_feats = [config['gnn_hid_dim_drug']] * config['gnn_num_layers'], 

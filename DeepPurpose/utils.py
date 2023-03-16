@@ -922,6 +922,7 @@ def generate_config(drug_encoding = None, target_encoding = None,
 					cls_hidden_dims_protein = [100, 100, 100],
 					hidden_dim_drug_child = 10,
 					hidden_dim_protein_child = 20,
+					MPNN_FC_num_layers = None
 					):
 
 	base_config = {'input_dim_drug': input_dim_drug,
@@ -964,7 +965,9 @@ def generate_config(drug_encoding = None, target_encoding = None,
 	elif base_config['dataset_name'].lower() == 'kiba':
 		base_config['num_drugs'], base_config['num_proteins'] = 2068, 229
 	elif base_config['dataset_name'].lower() == 'bindingdb':
-		base_config['num_drugs'], base_config['num_proteins'] = 17088, 82809
+		base_config['num_drugs'], base_config['num_proteins'] = 17088, 1678
+	elif base_config['dataset_name'].lower() == 'other':
+		base_config['num_drugs'], base_config['num_proteins'] = 0, 0
 	else:
 		raise AttributeError('Unknown dataset name passed.')
   
@@ -1030,6 +1033,7 @@ def generate_config(drug_encoding = None, target_encoding = None,
 		base_config['batch_size'] = batch_size 
 		base_config['mpnn_hidden_size'] = mpnn_hidden_size
 		base_config['mpnn_depth'] = mpnn_depth
+		base_config['MPNN_FC_num_layers'] = MPNN_FC_num_layers
 		#raise NotImplementedError
 	elif drug_encoding == 'DGL_GCN':
 		base_config['gnn_hid_dim_drug'] = gnn_hid_dim_drug

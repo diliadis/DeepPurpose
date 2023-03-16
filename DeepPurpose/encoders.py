@@ -240,20 +240,22 @@ class MLP(nn.Sequential):
 
 class MPNN(nn.Sequential):
 
-	def __init__(self, mpnn_hidden_size, mpnn_depth, device):
+	def __init__(self, mpnn_hidden_size, mpnn_depth, device, num_FC_layers=None):
 		super(MPNN, self).__init__()
 		self.device = device
 		self.mpnn_hidden_size = mpnn_hidden_size
 		self.mpnn_depth = mpnn_depth 
+		self.num_FC_layers = num_FC_layers
 		from DeepPurpose.chemutils import ATOM_FDIM, BOND_FDIM
 
 		self.W_i = nn.Linear(ATOM_FDIM + BOND_FDIM, self.mpnn_hidden_size, bias=False)
 		self.W_h = nn.Linear(self.mpnn_hidden_size, self.mpnn_hidden_size, bias=False)
 		self.W_o = nn.Linear(ATOM_FDIM + self.mpnn_hidden_size, self.mpnn_hidden_size)
-
-
-
-	## utils.smiles2mpnnfeature -> utils.mpnn_collate_func -> utils.mpnn_feature_collate_func -> encoders.MPNN.forward
+  
+		if self.num_FC_layers is not None:
+			self.predictor = nn.ModuleList([nn.Linear(mpnn_hidden_size, mpnn_hidden_size) for i in range(self.num_FC_layers)])
+	
+ 	## utils.smiles2mpnnfeature -> utils.mpnn_collate_func -> utils.mpnn_feature_collate_func -> encoders.MPNN.forward
 	def forward(self, feature):
 		'''
 			fatoms: (x, 39)
@@ -310,6 +312,14 @@ class MPNN(nn.Sequential):
 		atom_hiddens = F.relu(self.W_o(ainput))
 		output = [torch.mean(atom_hiddens.narrow(0, sts,leng), 0) for sts,leng in N_atoms_scope]
 		output = torch.stack(output, 0)
+  
+		if self.num_FC_layers:
+			for i, l in enumerate(self.predictor):
+				if i==(len(self.predictor)-1):
+					output = l(output)
+				else:
+					output = F.relu(self.dropout(l(output)))
+  
 		return output 
 
 
@@ -429,12 +439,12 @@ class DGL_AttentiveFP(nn.Module):
 		from dgllife.model.readout import AttentiveFPReadout
 		self.device = device
 		self.gnn = AttentiveFPGNN(node_feat_size=node_feat_size,
-                                  edge_feat_size=edge_feat_size,
-                                  num_layers=num_layers,
-                                  graph_feat_size=graph_feat_size)
+								  edge_feat_size=edge_feat_size,
+								  num_layers=num_layers,
+								  graph_feat_size=graph_feat_size)
 
 		self.readout = AttentiveFPReadout(feat_size=graph_feat_size,
-                                          num_timesteps=num_timesteps)
+										  num_timesteps=num_timesteps)
 
 		self.transform = nn.Linear(graph_feat_size, predictor_dim)
 
