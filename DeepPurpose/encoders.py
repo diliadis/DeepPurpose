@@ -3,7 +3,7 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 from torch.utils import data
 from torch.utils.data import SequentialSampler
-from torch import nn 
+from torch import nn
 
 from tqdm import tqdm
 import matplotlib.pyplot as plt
@@ -13,7 +13,7 @@ from time import time
 from sklearn.metrics import mean_squared_error, roc_auc_score, average_precision_score, f1_score, log_loss
 from lifelines.utils import concordance_index
 from scipy.stats import pearsonr
-import pickle 
+import pickle
 # torch.manual_seed(2)
 # np.random.seed(3)
 import copy
@@ -22,7 +22,7 @@ from prettytable import PrettyTable
 import os
 
 from DeepPurpose.utils import *
-from DeepPurpose.model_helper import Encoder_MultipleLayers, Embeddings    
+from DeepPurpose.model_helper import Encoder_MultipleLayers, Embeddings
 
 # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -32,22 +32,22 @@ class transformer(nn.Sequential):
 		self.config = config
 		if encoding == 'drug':
 			self.emb = Embeddings(config['input_dim_drug'], config['transformer_emb_size_drug'], 50, config['transformer_dropout_rate'])
-			self.encoder = Encoder_MultipleLayers(config['transformer_n_layer_drug'], 
-													config['transformer_emb_size_drug'], 
-													config['transformer_intermediate_size_drug'], 
+			self.encoder = Encoder_MultipleLayers(config['transformer_n_layer_drug'],
+													config['transformer_emb_size_drug'],
+													config['transformer_intermediate_size_drug'],
 													config['transformer_num_attention_heads_drug'],
 													config['transformer_attention_probs_dropout'],
 													config['transformer_hidden_dropout_rate'])
 		elif encoding == 'protein':
 			self.emb = Embeddings(config['input_dim_protein'], config['transformer_emb_size_target'], 545, config['transformer_dropout_rate'])
-			self.encoder = Encoder_MultipleLayers(config['transformer_n_layer_target'], 
-													config['transformer_emb_size_target'], 
-													config['transformer_intermediate_size_target'], 
+			self.encoder = Encoder_MultipleLayers(config['transformer_n_layer_target'],
+													config['transformer_emb_size_target'],
+													config['transformer_intermediate_size_target'],
 													config['transformer_num_attention_heads_target'],
 													config['transformer_attention_probs_dropout'],
 													config['transformer_hidden_dropout_rate'])
 
-	### parameter v (tuple of length 2) is from utils.drug2emb_encoder 
+	### parameter v (tuple of length 2) is from utils.drug2emb_encoder
 	def forward(self, v):
 		e = v[0].long().to(self.config['device'])
 		e_mask = v[1].long().to(self.config['device'])
@@ -66,8 +66,8 @@ class CNN(nn.Sequential):
 			in_ch = [63] + config['cnn_drug_filters']
 			kernels = config['cnn_drug_kernels']
 			layer_size = len(config['cnn_drug_filters'])
-			self.conv = nn.ModuleList([nn.Conv1d(in_channels = in_ch[i], 
-													out_channels = in_ch[i+1], 
+			self.conv = nn.ModuleList([nn.Conv1d(in_channels = in_ch[i],
+													out_channels = in_ch[i+1],
 													kernel_size = kernels[i]) for i in range(layer_size)])
 			self.conv = self.conv.double()
 			n_size_d = self._get_conv_output((63, 100))
@@ -78,8 +78,8 @@ class CNN(nn.Sequential):
 			in_ch = [26] + config['cnn_target_filters']
 			kernels = config['cnn_target_kernels']
 			layer_size = len(config['cnn_target_filters'])
-			self.conv = nn.ModuleList([nn.Conv1d(in_channels = in_ch[i], 
-													out_channels = in_ch[i+1], 
+			self.conv = nn.ModuleList([nn.Conv1d(in_channels = in_ch[i],
+													out_channels = in_ch[i+1],
 													kernel_size = kernels[i]) for i in range(layer_size)])
 			self.conv = self.conv.double()
 			n_size_p = self._get_conv_output((26, 1000))
@@ -114,21 +114,21 @@ class CNN_RNN(nn.Sequential):
 			self.in_ch = in_ch[-1]
 			kernels = config['cnn_drug_kernels']
 			layer_size = len(config['cnn_drug_filters'])
-			self.conv = nn.ModuleList([nn.Conv1d(in_channels = in_ch[i], 
-													out_channels = in_ch[i+1], 
+			self.conv = nn.ModuleList([nn.Conv1d(in_channels = in_ch[i],
+													out_channels = in_ch[i+1],
 													kernel_size = kernels[i]) for i in range(layer_size)])
 			self.conv = self.conv.double()
 			n_size_d = self._get_conv_output((63, 100)) # auto get the seq_len of CNN output
 
 			if config['rnn_Use_GRU_LSTM_drug'] == 'LSTM':
-				self.rnn = nn.LSTM(input_size = in_ch[-1], 
+				self.rnn = nn.LSTM(input_size = in_ch[-1],
 								hidden_size = config['rnn_drug_hid_dim'],
 								num_layers = config['rnn_drug_n_layers'],
 								batch_first = True,
 								bidirectional = config['rnn_drug_bidirectional'])
-			
+
 			elif config['rnn_Use_GRU_LSTM_drug'] == 'GRU':
-				self.rnn = nn.GRU(input_size = in_ch[-1], 
+				self.rnn = nn.GRU(input_size = in_ch[-1],
 								hidden_size = config['rnn_drug_hid_dim'],
 								num_layers = config['rnn_drug_n_layers'],
 								batch_first = True,
@@ -144,21 +144,21 @@ class CNN_RNN(nn.Sequential):
 			self.in_ch = in_ch[-1]
 			kernels = config['cnn_target_kernels']
 			layer_size = len(config['cnn_target_filters'])
-			self.conv = nn.ModuleList([nn.Conv1d(in_channels = in_ch[i], 
-													out_channels = in_ch[i+1], 
+			self.conv = nn.ModuleList([nn.Conv1d(in_channels = in_ch[i],
+													out_channels = in_ch[i+1],
 													kernel_size = kernels[i]) for i in range(layer_size)])
 			self.conv = self.conv.double()
 			n_size_p = self._get_conv_output((26, 1000))
 
 			if config['rnn_Use_GRU_LSTM_target'] == 'LSTM':
-				self.rnn = nn.LSTM(input_size = in_ch[-1], 
+				self.rnn = nn.LSTM(input_size = in_ch[-1],
 								hidden_size = config['rnn_target_hid_dim'],
 								num_layers = config['rnn_target_n_layers'],
 								batch_first = True,
 								bidirectional = config['rnn_target_bidirectional'])
 
 			elif config['rnn_Use_GRU_LSTM_target'] == 'GRU':
-				self.rnn = nn.GRU(input_size = in_ch[-1], 
+				self.rnn = nn.GRU(input_size = in_ch[-1],
 								hidden_size = config['rnn_target_hid_dim'],
 								num_layers = config['rnn_target_n_layers'],
 								batch_first = True,
@@ -236,7 +236,7 @@ class MLP(nn.Sequential):
 		v = v.float().to(self.device)
 		for i, l in enumerate(self.predictor):
 			v = F.relu(l(v))
-		return v  
+		return v
 
 class MPNN(nn.Sequential):
 
@@ -244,19 +244,17 @@ class MPNN(nn.Sequential):
 		super(MPNN, self).__init__()
 		self.device = device
 		self.mpnn_hidden_size = mpnn_hidden_size
-		self.mpnn_depth = mpnn_depth 
+		self.mpnn_depth = mpnn_depth
 		self.num_FC_layers = num_FC_layers
-        self.dropout = nn.Dropout(0.1)
 		from DeepPurpose.chemutils import ATOM_FDIM, BOND_FDIM
-
 		self.W_i = nn.Linear(ATOM_FDIM + BOND_FDIM, self.mpnn_hidden_size, bias=False)
 		self.W_h = nn.Linear(self.mpnn_hidden_size, self.mpnn_hidden_size, bias=False)
 		self.W_o = nn.Linear(ATOM_FDIM + self.mpnn_hidden_size, self.mpnn_hidden_size)
-  
+
 		if self.num_FC_layers is not None:
 			self.predictor = nn.ModuleList([nn.Linear(mpnn_hidden_size, mpnn_hidden_size) for i in range(self.num_FC_layers)])
-	
- 	## utils.smiles2mpnnfeature -> utils.mpnn_collate_func -> utils.mpnn_feature_collate_func -> encoders.MPNN.forward
+
+	## utils.smiles2mpnnfeature -> utils.mpnn_collate_func -> utils.mpnn_feature_collate_func -> encoders.MPNN.forward
 	def forward(self, feature):
 		'''
 			fatoms: (x, 39)
@@ -267,11 +265,11 @@ class MPNN(nn.Sequential):
 		fatoms, fbonds, agraph, bgraph, N_atoms_bond = feature
 		N_atoms_scope = []
 		##### tensor feature -> matrix feature
-		N_a, N_b = 0, 0 
+		N_a, N_b = 0, 0
 		fatoms_lst, fbonds_lst, agraph_lst, bgraph_lst = [],[],[],[]
 		for i in range(N_atoms_bond.shape[0]):
-			atom_num = int(N_atoms_bond[i][0].item()) 
-			bond_num = int(N_atoms_bond[i][1].item()) 
+			atom_num = int(N_atoms_bond[i][0].item())
+			bond_num = int(N_atoms_bond[i][1].item())
 
 			fatoms_lst.append(fatoms[i,:atom_num,:])
 			fbonds_lst.append(fbonds[i,:bond_num,:])
@@ -279,8 +277,8 @@ class MPNN(nn.Sequential):
 			bgraph_lst.append(bgraph[i,:bond_num,:] + N_b)
 
 			N_atoms_scope.append((N_a, atom_num))
-			N_a += atom_num 
-			N_b += bond_num 
+			N_a += atom_num
+			N_b += bond_num
 
 
 		fatoms = torch.cat(fatoms_lst, 0)
@@ -291,7 +289,7 @@ class MPNN(nn.Sequential):
 
 
 		agraph = agraph.long()
-		bgraph = bgraph.long()	
+		bgraph = bgraph.long()
 
 		fatoms = create_var(fatoms).to(self.device)
 		fbonds = create_var(fbonds).to(self.device)
@@ -299,13 +297,13 @@ class MPNN(nn.Sequential):
 		bgraph = create_var(bgraph).to(self.device)
 
 		binput = self.W_i(fbonds) #### (y, d1)
-		message = F.relu(binput)  #### (y, d1)		
+		message = F.relu(binput)  #### (y, d1)
 
 		for i in range(self.mpnn_depth - 1):
 			nei_message = index_select_ND(message, 0, bgraph)
 			nei_message = nei_message.sum(dim=1)
 			nei_message = self.W_h(nei_message)
-			message = F.relu(binput + nei_message) ### (y,d1) 
+			message = F.relu(binput + nei_message) ### (y,d1)
 
 		nei_message = index_select_ND(message, 0, agraph)
 		nei_message = nei_message.sum(dim=1)
@@ -313,15 +311,15 @@ class MPNN(nn.Sequential):
 		atom_hiddens = F.relu(self.W_o(ainput))
 		output = [torch.mean(atom_hiddens.narrow(0, sts,leng), 0) for sts,leng in N_atoms_scope]
 		output = torch.stack(output, 0)
-  
+
 		if self.num_FC_layers:
 			for i, l in enumerate(self.predictor):
 				if i==(len(self.predictor)-1):
 					output = l(output)
 				else:
 					output = F.relu(self.dropout(l(output)))
-  
-		return output 
+
+		return output
 
 
 class DGL_GCN(nn.Module):
@@ -341,7 +339,7 @@ class DGL_GCN(nn.Module):
 
 	def forward(self, bg):
 		bg = bg.to(self.device)
-		feats = bg.ndata.pop('h') 
+		feats = bg.ndata.pop('h')
 		node_feats = self.gnn(bg, feats)
 		graph_feats = self.readout(bg, node_feats)
 		return self.transform(graph_feats)
@@ -366,8 +364,8 @@ class DGL_NeuralFP(nn.Module):
 		self.transform = nn.Linear(predictor_hidden_size * 2, predictor_dim)
 
 	def forward(self, bg):
-		bg = bg.to(self.device)        
-		feats = bg.ndata.pop('h') 
+		bg = bg.to(self.device)
+		feats = bg.ndata.pop('h')
 		node_feats = self.gnn(bg, feats)
 		node_feats = self.node_to_graph(node_feats)
 		graph_feats = self.readout(bg, node_feats)
@@ -389,7 +387,7 @@ class DGL_GIN_AttrMasking(nn.Module):
 		self.transform = nn.Linear(300, predictor_dim)
 
 	def forward(self, bg):
-		bg = bg.to(self.device)                
+		bg = bg.to(self.device)
 		node_feats = [
 			bg.ndata.pop('atomic_number'),
 			bg.ndata.pop('chirality_type')
@@ -417,7 +415,7 @@ class DGL_GIN_ContextPred(nn.Module):
 		self.transform = nn.Linear(300, predictor_dim)
 
 	def forward(self, bg):
-		bg = bg.to(self.device)                
+		bg = bg.to(self.device)
 		node_feats = [
 			bg.ndata.pop('atomic_number'),
 			bg.ndata.pop('chirality_type')
@@ -450,7 +448,7 @@ class DGL_AttentiveFP(nn.Module):
 		self.transform = nn.Linear(graph_feat_size, predictor_dim)
 
 	def forward(self, bg):
-		bg = bg.to(self.device)                
+		bg = bg.to(self.device)
 		node_feats = bg.ndata.pop('h')
 		edge_feats = bg.edata.pop('e')
 
