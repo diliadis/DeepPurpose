@@ -108,8 +108,8 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
             cls_num_layers = random.randint(1, 3)
             # temp_config['cnn_target_filters'] = random.sample(ranges_dict['cnn_target_filters'], cnn_num_layers)
             # temp_config['cnn_target_kernels'] = random.sample(ranges_dict['cnn_target_kernels'], cnn_num_layers)
-            temp_config['mlp_hidden_dims_drug'] = get_sizes_per_layer(drug_num_layers_target, ranges_dict['cnn_target_filters'], bottleneck=True)
-            temp_config['mlp_hidden_dims_target'] = get_sizes_per_layer(target_num_layers_drug, ranges_dict['cnn_target_kernels'], bottleneck=True)
+            temp_config['mlp_hidden_dims_drug'] = get_sizes_per_layer(drug_num_layers_target, ranges_dict['mlp_hidden_dims_drug'], bottleneck=True)
+            temp_config['mlp_hidden_dims_target'] = get_sizes_per_layer(target_num_layers_drug, ranges_dict['mlp_hidden_dims_target'], bottleneck=True)
             temp_config['cls_hidden_dims'] = get_sizes_per_layer(cls_num_layers, ranges_dict['cls_hidden_dims'], bottleneck=True)
             print('Candidate config: '+str(temp_config))
             if completed_param_combinations_df[
