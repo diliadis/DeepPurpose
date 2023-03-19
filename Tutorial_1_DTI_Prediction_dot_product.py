@@ -99,7 +99,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         unseen_config_found = False
         temp_config = {}
         while not unseen_config_found:
-            temp_config.update({param_name: random.sample(vals, 1)[0] for param_name, vals in ranges_dict.items() if param_name not in ['mlp_drug_nodes_per_layer', 'mlp_target_nodes_per_layer', 'cls_hidden_dims']}) 
+            temp_config.update({param_name: random.sample(vals, 1)[0] for param_name, vals in ranges_dict.items() if param_name not in ['mlp_drug_nodes_per_layer', 'mlp_target_nodes_per_layer']}) 
             drug_num_layers_target = random.randint(1, 4)
             target_num_layers_drug = random.randint(1, 4)
             # temp_config['cnn_target_filters'] = random.sample(ranges_dict['cnn_target_filters'], cnn_num_layers)
