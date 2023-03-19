@@ -65,7 +65,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
 
 
     ranges_dict = {
-        'learning_rate': [0.01, 0.001, 0.0001, 0.00001, 0.000001],
+        'learning_rate': [0.001, 0.0001],
         'hidden_dim_drug': [4, 8, 16, 32, 64, 128, 256, 512],
         'hidden_dim_protein': [4, 8, 16, 32, 64, 128, 256, 512],
         'mlp_hidden_dims_drug': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048],
