@@ -70,7 +70,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         'hidden_dim_protein': [4, 8, 16, 32, 64, 128, 256, 512],
         'mlp_hidden_dims_drug': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048],
         'mlp_hidden_dims_target': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048],
-        'cls_hidden_size': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
+        'cls_hidden_dims': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
     }
 
 
