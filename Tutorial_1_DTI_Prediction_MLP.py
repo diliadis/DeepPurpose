@@ -32,9 +32,8 @@ def get_sizes_per_layer(num_layers, layer_sizes_range, bottleneck=False):
     return sizes_per_layer
 
 def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performance_threshold=1.0, wandb_dir='/data/gent/vo/000/gvo00048/vsc43483'):
-    print('Hello there')
     num_samples = int(num_samples)
-    print('num_samples: '+str(num_samples))
+    
     split_method = 'random'
     if str(val_setting) == 'B':
         split_method = 'cold_drug'
@@ -43,7 +42,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
     elif str(val_setting) == 'A':
         split_method = 'random'
 
-    wandb_project_name = 'DeepPurpose_CNN_CNN'
+    wandb_project_name = 'DeepPurpose_final_simple_bottleneck'
     wandb_project_entity = 'diliadis'
     general_architecture_version = 'mlp'
 
@@ -56,7 +55,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
     else:
         raise AttributeError('invalid dataset name passed.')
     
-    drug_encoding, target_encoding = 'CNN', 'CNN'
+    drug_encoding, target_encoding = 'Morgan', 'AAC'
     print('Processing the dataset...')
     train, val, test = utils.data_process(X_drugs, X_targets, y,
                                 drug_encoding, target_encoding, 
@@ -66,62 +65,20 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
 
 
     ranges_dict = {
-        # 'learning_rate': [0.01, 0.001, 0.0001, 0.00001, 0.000001],
-        'learning_rate': [0.001, 0.0001],
+        'learning_rate': [0.01, 0.001, 0.0001, 0.00001, 0.000001],
         'hidden_dim_drug': [4, 8, 16, 32, 64, 128, 256, 512],
-        'cnn_drug_filters': [16, 32, 64, 128],
-        'cnn_drug_kernels': [4, 8, 12, 16],
-        
         'hidden_dim_protein': [4, 8, 16, 32, 64, 128, 256, 512],
-        'cnn_target_filters': [16, 32, 64, 128],
-        'cnn_target_kernels': [4, 8, 12, 16],
-
-        'cls_hidden_dims': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
+        'mlp_drug_nodes_per_layer': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048],
+        'mlp_target_nodes_per_layer': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048],
+        'cls_hidden_size': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048]
     }
-    
-    
-    # check if the file exists
-    update_file = dataset_name+'_'+general_architecture_version+'_'+val_setting+'.pickle'
 
-    entity, project = wandb_project_entity, wandb_project_name  # set to your entity and project 
+
+    # check if the file exists
+    update_file = 'random_search_pickles/'+drug_encoding+'_'+target_encoding+'/'+dataset_name+'_'+general_architecture_version+'_'+val_setting+'.pickle'
+
     for experiment_id in range(num_samples):
         
-        '''
-        # runs = api.runs(entity + "/" + project) 
-        api = wandb.Api()
-        runs = api.runs(entity + "/" + project, filters={"config.general_architecture_version": general_architecture_version, "config.dataset_name": dataset_name, "config.validation_setting": val_setting}, order="+created_at")
-        print('Just loaded '+str(len(runs))+' runs.')
-        completed_param_combinations = {param_name: [] for param_name in ranges_dict.keys()}
-        for run in tqdm(runs):
-            if run.state != "crashed":
-                print(str(run.id))
-                temp_run = run
-                if temp_run.state == 'running':
-                    print('Detected a running process: '+str(temp_run.id)+'. Sleeping for 30 secs')
-                    time.sleep(30)
-
-                # while True:
-                #     if 'general_architecture_version' in temp_run.config:
-                #         print('valid run!')
-                #         break
-                #     else:
-                #         print('loading run:'+str(temp_run.id)+' again')
-                #         temp_run = api.run(entity + "/" + project + "/" + temp_run.id)
-                        
-                # if ((temp_run.config['general_architecture_version'] == general_architecture_version) and (temp_run.config['dataset_name'] == dataset_name) and (temp_run.config['validation_setting'] == val_setting)):
-                for param_name in ranges_dict.keys():
-                    if param_name == 'learning_rate':
-                        completed_param_combinations[param_name].append(temp_run.config['LR'])
-                    else:
-                        completed_param_combinations[param_name].append(temp_run.config[param_name])
-                    # else:
-                    #     completed_param_combinations[param_name].append(temp_run.config[param_name][0] if isinstance(temp_run.config[param_name], list) else temp_run.config[param_name])
-            else:
-                print('run has crashed: '+str(run.state))  
-            
-        completed_param_combinations_df = pd.DataFrame(completed_param_combinations)
-
-        '''
         # dataframe with configurations already tested and logged to wandb
         file_lock = threading.Lock()
         print('Getting lock....')
@@ -145,16 +102,14 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
         unseen_config_found = False
         temp_config = {}
         while not unseen_config_found:
-            temp_config.update({param_name: random.sample(vals, 1)[0] for param_name, vals in ranges_dict.items() if param_name not in ['cnn_target_filter', 'cnn_target_kernel', 'cnn_drug_filter', 'cnn_drug_kernel', 'cls_hidden_dims']}) 
-            cnn_num_layers_target = random.randint(1, 3)
-            cnn_num_layers_drug = random.randint(1, 3)
+            temp_config.update({param_name: random.sample(vals, 1)[0] for param_name, vals in ranges_dict.items() if param_name not in ['mlp_drug_nodes_per_layer', 'mlp_target_nodes_per_layer', 'cls_hidden_dims']}) 
+            drug_num_layers_target = random.randint(1, 4)
+            target_num_layers_drug = random.randint(1, 4)
             cls_num_layers = random.randint(1, 3)
             # temp_config['cnn_target_filters'] = random.sample(ranges_dict['cnn_target_filters'], cnn_num_layers)
             # temp_config['cnn_target_kernels'] = random.sample(ranges_dict['cnn_target_kernels'], cnn_num_layers)
-            temp_config['cnn_target_filters'] = get_sizes_per_layer(cnn_num_layers_target, ranges_dict['cnn_target_filters'], bottleneck=False)
-            temp_config['cnn_target_kernels'] = get_sizes_per_layer(cnn_num_layers_target, ranges_dict['cnn_target_kernels'], bottleneck=False)
-            temp_config['cnn_drug_filters'] = get_sizes_per_layer(cnn_num_layers_drug, ranges_dict['cnn_drug_filters'], bottleneck=False)
-            temp_config['cnn_drug_kernels'] = get_sizes_per_layer(cnn_num_layers_drug, ranges_dict['cnn_drug_kernels'], bottleneck=False)
+            temp_config['mlp_hidden_dims_drug'] = get_sizes_per_layer(drug_num_layers_target, ranges_dict['cnn_target_filters'], bottleneck=True)
+            temp_config['mlp_hidden_dims_target'] = get_sizes_per_layer(target_num_layers_drug, ranges_dict['cnn_target_kernels'], bottleneck=True)
             temp_config['cls_hidden_dims'] = get_sizes_per_layer(cls_num_layers, ranges_dict['cls_hidden_dims'], bottleneck=True)
             print('Candidate config: '+str(temp_config))
             if completed_param_combinations_df[
@@ -164,10 +119,8 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
 
                 (completed_param_combinations_df['cls_hidden_dims'].apply((temp_config['cls_hidden_dims']).__eq__)) &
 
-                (completed_param_combinations_df['cnn_target_filters'].apply((temp_config['cnn_target_filters']).__eq__)) &
-                (completed_param_combinations_df['cnn_target_kernels'].apply((temp_config['cnn_target_kernels']).__eq__)) &
-                (completed_param_combinations_df['cnn_drug_filters'].apply((temp_config['cnn_drug_filters']).__eq__)) &
-                (completed_param_combinations_df['cnn_drug_kernels'].apply((temp_config['cnn_drug_kernels']).__eq__))
+                (completed_param_combinations_df['mlp_hidden_dims_drug'].apply((temp_config['mlp_hidden_dims_drug']).__eq__)) &
+                (completed_param_combinations_df['mlp_hidden_dims_target'].apply((temp_config['mlp_hidden_dims_target']).__eq__))
             ].empty:
                 completed_param_combinations_df = completed_param_combinations_df.append(temp_config, ignore_index=True)
                 print('NEW CONFIG FOUND: '+str(temp_config))
@@ -187,11 +140,8 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                                 hidden_dim_drug = int(temp_config['hidden_dim_drug']),
                                 hidden_dim_protein = int(temp_config['hidden_dim_protein']),
 
-                                cnn_target_filters = temp_config['cnn_target_filters'],
-                                cnn_target_kernels = temp_config['cnn_target_kernels'],
-                                
-                                cnn_drug_filters = temp_config['cnn_drug_filters'],
-                                cnn_drug_kernels = temp_config['cnn_drug_kernels'],
+                                mlp_hidden_dims_drug = temp_config['mlp_hidden_dims_drug'],
+                                mlp_hidden_dims_target = temp_config['mlp_hidden_dims_target'],
                                 
                                 general_architecture_version = general_architecture_version,
                                 cuda_id=str(cuda_id),
@@ -226,3 +176,4 @@ if __name__ == "__main__":
     config = vars(args)
     
     main(config['num_configs'], config['val_setting'], config['cuda_id'], config['num_workers'], config['dataset_name'], performance_threshold=float(config['performance_threshold']))
+    
