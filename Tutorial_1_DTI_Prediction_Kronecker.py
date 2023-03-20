@@ -42,7 +42,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
     elif str(val_setting) == 'A':
         split_method = 'random'
 
-    wandb_project_name = 'DeepPurpose_final_simple'
+    wandb_project_name = 'DeepPurpose_final_simple_bottleneck'
     wandb_project_entity = 'diliadis'
     general_architecture_version = 'kronecker'
 
