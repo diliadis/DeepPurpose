@@ -22,6 +22,11 @@ import json
 
 def main(general_architecture_version, val_setting, cuda_id, num_workers, dataset_name, performance_threshold=1.0, wandb_project_name='test', wandb_dir='/data/gent/vo/000/gvo00048/vsc43483', config_file_name=None):
     
+    if config_file_name is not None:
+    with open(config_file_name+'.json') as json_file:
+        data = json.load(json_file)
+        print('CONFIG FILE FOUND!!! UPDATING DEFAULT CONFIG')
+    
     split_method = 'random'
     if str(val_setting) == 'B':
         split_method = 'cold_drug'
@@ -80,10 +85,8 @@ def main(general_architecture_version, val_setting, cuda_id, num_workers, datase
                             dataset_name = dataset_name.upper()
                             )
     
+    # updating config with the json file provided by the user
     if config_file_name is not None:
-        with open(config_file_name+'.json') as json_file:
-            data = json.load(json_file)
-            print('CONFIG FILE FOUND!!! UPDATING DEFAULT CONFIG')
         config.update(data)
     
     model = models.model_initialize(**config)
