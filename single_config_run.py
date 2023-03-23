@@ -20,7 +20,7 @@ import argparse
 import json
 
 
-def main(general_architecture_version, val_setting, cuda_id, num_workers, dataset_name, performance_threshold=1.0, wandb_project_name='test', wandb_dir='/data/gent/vo/000/gvo00048/vsc43483', config_file_name=None):
+def main(general_architecture_version, val_setting, cuda_id, num_workers, dataset_name, drug_encoding='MPNN', target_encoding='CNN', performance_threshold=1.0, wandb_project_name='test', wandb_dir='/data/gent/vo/000/gvo00048/vsc43483', config_file_name=None, save_model_dir=None):
     
     if config_file_name is not None:
         with open(config_file_name+'.json') as json_file:
@@ -48,7 +48,7 @@ def main(general_architecture_version, val_setting, cuda_id, num_workers, datase
     else:
         raise AttributeError('invalid dataset name passed.')
     
-    drug_encoding, target_encoding = 'MPNN', 'CNN'
+    # drug_encoding, target_encoding = 'MPNN', 'CNN'
     print('Processing the dataset...')
     train, val, test = utils.data_process(X_drugs, X_targets, y,
                                 drug_encoding, target_encoding, 
@@ -94,6 +94,9 @@ def main(general_architecture_version, val_setting, cuda_id, num_workers, datase
     print(str(model.config))
     model.train(train, val, test)
     
+    if save_model_dir:
+        model.save_model(save_model_dir)
+    
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="DeepPurpose DTI example", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--general_architecture_version", help="variant of dual-encoder architecture")
@@ -101,11 +104,14 @@ if __name__ == "__main__":
     parser.add_argument("--cuda_id", help="the id of the GPU that will be used for training")
     parser.add_argument("--num_workers", help="the number of workers that will be used by the dataloaders")
     parser.add_argument("--dataset_name", help="the name of the dataset that will be used. (DAVIS and KIBA are the current valid options)")
+    parser.add_argument("--drug_encoding", help="name of the drug encoder")
+    parser.add_argument("--target_encoding", help="name of the target encoder")
     parser.add_argument("--performance_threshold", help="performance threshold checked before epoch 30")
     parser.add_argument("--wandb_project_name", help="performance threshold checked before epoch 30")
     parser.add_argument("--config_file_name", help="name of the json file with the config to be tested.")
+    parser.add_argument("--save_model_dir", help="The directory in which the trained model will be saved")
     args = parser.parse_args()
     config = vars(args)
     
-    main(config['general_architecture_version'], config['val_setting'], config['cuda_id'], config['num_workers'], config['dataset_name'], wandb_project_name=config['wandb_project_name'], performance_threshold=float(config['performance_threshold']), config_file_name=config['config_file_name'])
+    main(config['general_architecture_version'], config['val_setting'], config['cuda_id'], config['num_workers'], config['dataset_name'], config['drug_encoding'], config['target_encoding'], wandb_project_name=config['wandb_project_name'], performance_threshold=float(config['performance_threshold']), config_file_name=config['config_file_name'], config['save_model_dir'])
     
