@@ -55,10 +55,10 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
     else:
         raise AttributeError('invalid dataset name passed.')
     
-    drug_encoding, target_encoding = 'Morgan', 'AAC'
+    drug_encoding, target_encoding = 'one-hot', 'one-hot'
     print('Processing the dataset...')
     train, val, test = utils.data_process(X_drugs, X_targets, y,
-                                drug_encoding, target_encoding, 
+                                drug_encoding, target_encoding,
                                 split_method=split_method,frac=[0.7,0.1,0.2],
                                 random_seed = 1)
     print('Done! ')
