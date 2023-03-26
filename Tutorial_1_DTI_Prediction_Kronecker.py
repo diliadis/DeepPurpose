@@ -42,7 +42,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
     elif str(val_setting) == 'A':
         split_method = 'random'
 
-    wandb_project_name = 'DeepPurpose_final_simple_bottleneck_one_hot'
+    wandb_project_name = 'DeepPurpose_final_simple_bottleneck_inception'
     wandb_project_entity = 'diliadis'
     general_architecture_version = 'kronecker'
 
@@ -55,12 +55,14 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
     else:
         raise AttributeError('invalid dataset name passed.')
     
-    drug_encoding, target_encoding = 'one-hot', 'one-hot'
+    drug_encoding, target_encoding = 'Morgan', 'AAC'
     print('Processing the dataset...')
-    train, val, test = utils.data_process(X_drugs, X_targets, y, 
+    train, val, test = utils.data_process(X_drugs, X_targets, y,
                                 drug_encoding, target_encoding, 
                                 split_method=split_method,frac=[0.7,0.1,0.2],
-                                random_seed = 1)
+                                random_seed = 1,
+                                explicit_plus_one_hot_drug_features_mode=True,
+                                explicit_plus_one_hot_protein_features_mode=True)
     print('Done! ')
 
 
@@ -71,11 +73,24 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
 
         'mlp_hidden_dims_drug': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048],
         'mlp_hidden_dims_target': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048],
+        
+        'hidden_dim_drug_one_hot': [32, 64, 128, 256, 512, 1024, 2048],
+        'hidden_dim_protein_one_hot': [32, 64, 128, 256, 512, 1024, 2048],
+        'mlp_hidden_dims_drug_one_hot': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048],
+        'mlp_hidden_dims_protein_one_hot': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048],
+        'cls_hidden_dims_drug': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048],
+        'cls_hidden_dims_protein': [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048],
+        'hidden_dim_drug_child': [4, 8, 16, 32, 64, 128, 256, 512],
+        'hidden_dim_protein_child': [4, 8, 16, 32, 64, 128, 256, 512],
     }
 
     # check if the file exists
-    update_file = 'random_search_pickles/'+drug_encoding+'_'+target_encoding+'/'+dataset_name+'_'+general_architecture_version+'_'+val_setting+'.pickle'
-
+    inception_mode = True
+    if inception_mode == True:
+        update_file = 'random_search_pickles/'+drug_encoding+'_'+target_encoding+'_inception/'+dataset_name+'_'+general_architecture_version+'_'+val_setting+'.pickle'
+    else:
+        update_file = 'random_search_pickles/'+drug_encoding+'_'+target_encoding+'/'+dataset_name+'_'+general_architecture_version+'_'+val_setting+'.pickle'
+        
     for experiment_id in range(num_samples):
         
         # dataframe with configurations already tested and logged to wandb
@@ -114,7 +129,19 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                 (completed_param_combinations_df['hidden_dim_drug'] == temp_config['hidden_dim_drug']) & 
                 (completed_param_combinations_df['hidden_dim_protein'] == temp_config['hidden_dim_protein']) & 
                 (completed_param_combinations_df['mlp_hidden_dims_drug'].apply((temp_config['mlp_hidden_dims_drug']).__eq__)) &
-                (completed_param_combinations_df['mlp_hidden_dims_target'].apply((temp_config['mlp_hidden_dims_target']).__eq__))
+                (completed_param_combinations_df['mlp_hidden_dims_target'].apply((temp_config['mlp_hidden_dims_target']).__eq__)) &
+                
+                (completed_param_combinations_df['hidden_dim_drug_one_hot'] == temp_config['hidden_dim_drug_one_hot']) & 
+                (completed_param_combinations_df['hidden_dim_protein_one_hot'] == temp_config['hidden_dim_protein_one_hot']) & 
+                
+                (completed_param_combinations_df['mlp_hidden_dims_drug_one_hot'].apply((temp_config['mlp_hidden_dims_drug_one_hot']).__eq__)) &
+                (completed_param_combinations_df['mlp_hidden_dims_protein_one_hot'].apply((temp_config['mlp_hidden_dims_protein_one_hot']).__eq__)) &
+                
+                (completed_param_combinations_df['cls_hidden_dims_drug'].apply((temp_config['cls_hidden_dims_drug']).__eq__)) &
+                (completed_param_combinations_df['cls_hidden_dims_protein'].apply((temp_config['cls_hidden_dims_protein']).__eq__)) &
+                
+                (completed_param_combinations_df['hidden_dim_drug_child'] == temp_config['hidden_dim_drug_child']) & 
+                (completed_param_combinations_df['hidden_dim_protein_child'] == temp_config['hidden_dim_protein_child'])
             ].empty:
                 completed_param_combinations_df = completed_param_combinations_df.append(temp_config, ignore_index=True)
                 print('NEW CONFIG FOUND: '+str(temp_config))
@@ -148,7 +175,17 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                                 num_workers=int(num_workers),
                                 performance_threshold = {'metric_name':'MSE', 'value': performance_threshold, 'direction': 'min', 'max_epochs_allowed': 30},
                                 validation_setting=val_setting,
-                                dataset_name = dataset_name.upper()
+                                dataset_name = dataset_name.upper(),
+                                explicit_plus_one_hot_drug_features_mode=True,
+                                explicit_plus_one_hot_protein_features_mode=True,
+                                hidden_dim_drug_one_hot = int(temp_config['hidden_dim_drug_one_hot']),
+                                hidden_dim_protein_one_hot = int(temp_config['hidden_dim_protein_one_hot']),
+                                mlp_hidden_dims_drug_one_hot = temp_config['mlp_hidden_dims_drug_one_hot'],
+                                mlp_hidden_dims_protein_one_hot = temp_config['mlp_hidden_dims_protein_one_hot'],
+                                cls_hidden_dims_drug = temp_config['cls_hidden_dims_drug'],
+                                cls_hidden_dims_protein = temp_config['cls_hidden_dims_protein'],
+                                hidden_dim_drug_child = int(temp_config['hidden_dim_drug_child']),
+                                hidden_dim_protein_child = int(temp_config['hidden_dim_protein_child']),
                                 )
         config['protein_mode_coverage'] = 'extended'
 
