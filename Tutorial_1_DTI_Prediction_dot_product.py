@@ -186,7 +186,7 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                                 num_workers=int(num_workers),
                                 performance_threshold = {'metric_name':'MSE', 'value': performance_threshold, 'direction': 'min', 'max_epochs_allowed': 30},
                                 validation_setting=val_setting,
-                                dataset_name = dataset_name.upper()
+                                dataset_name = dataset_name.upper(),
                                 explicit_plus_one_hot_drug_features_mode=True,
                                 explicit_plus_one_hot_protein_features_mode=True,
                                 hidden_dim_drug_one_hot = int(temp_config['hidden_dim_drug_one_hot']),
