@@ -177,8 +177,8 @@ def main(num_samples, val_setting, cuda_id, num_workers, dataset_name, performan
                                 cnn_drug_filters = temp_config['cnn_drug_filters'],
                                 cnn_drug_kernels = temp_config['cnn_drug_kernels'],
                                 
-                                cnn_drug_filters = temp_config['cnn_target_filters'],
-                                cnn_drug_kernels = temp_config['cnn_target_kernels'],
+                                cnn_target_filters = temp_config['cnn_target_filters'],
+                                cnn_target_kernels = temp_config['cnn_target_kernels'],
                                 
                                 general_architecture_version = general_architecture_version,
                                 cuda_id=str(cuda_id),
