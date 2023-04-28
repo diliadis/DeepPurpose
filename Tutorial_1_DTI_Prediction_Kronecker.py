@@ -62,7 +62,7 @@ def main(
     elif str(val_setting) == "A":
         split_method = "random"
 
-    wandb_project_name = "DeepPurpose_final_simple_bottleneck"
+    wandb_project_name = "DeepPurpose_CNN_CNN"
     wandb_project_entity = "diliadis"
     general_architecture_version = "kronecker"
 
@@ -100,8 +100,10 @@ def main(
         "learning_rate": [0.001, 0.0001],
         "hidden_dim_drug": [4, 8, 16, 32, 64, 128, 256, 512],
         "hidden_dim_protein": [4, 8, 16, 32, 64, 128, 256, 512],
-        "mlp_hidden_dims_drug": [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048],
-        "mlp_hidden_dims_target": [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048],
+        "cnn_drug_filters": [16, 32, 64, 128],
+        "cnn_drug_kernels": [4, 8, 12, 16],
+        "cnn_target_filters": [16, 32, 64, 128],
+        "cnn_target_kernels": [4, 8, 12, 16],
     }
 
     # check if the file exists
@@ -154,15 +156,25 @@ def main(
             target_num_layers_drug = random.randint(1, 4)
             # temp_config['cnn_target_filters'] = random.sample(ranges_dict['cnn_target_filters'], cnn_num_layers)
             # temp_config['cnn_target_kernels'] = random.sample(ranges_dict['cnn_target_kernels'], cnn_num_layers)
-            temp_config["mlp_hidden_dims_drug"] = get_sizes_per_layer(
+            temp_config["cnn_drug_filters"] = get_sizes_per_layer(
                 drug_num_layers_target,
-                ranges_dict["mlp_hidden_dims_drug"],
-                bottleneck=True,
+                ranges_dict["cnn_drug_filters"],
+                bottleneck=False,
             )
-            temp_config["mlp_hidden_dims_target"] = get_sizes_per_layer(
+            temp_config["cnn_drug_kernels"] = get_sizes_per_layer(
+                drug_num_layers_target,
+                ranges_dict["cnn_drug_kernels"],
+                bottleneck=False,
+            )
+            temp_config["cnn_target_filters"] = get_sizes_per_layer(
                 target_num_layers_drug,
-                ranges_dict["mlp_hidden_dims_target"],
-                bottleneck=True,
+                ranges_dict["cnn_target_filters"],
+                bottleneck=False,
+            )
+            temp_config["cnn_target_kernels"] = get_sizes_per_layer(
+                target_num_layers_drug,
+                ranges_dict["cnn_target_kernels"],
+                bottleneck=False,
             )
             print("Candidate config: " + str(temp_config))
             if completed_param_combinations_df[
@@ -179,13 +191,23 @@ def main(
                     == temp_config["hidden_dim_protein"]
                 )
                 & (
-                    completed_param_combinations_df["mlp_hidden_dims_drug"].apply(
-                        (temp_config["mlp_hidden_dims_drug"]).__eq__
+                    completed_param_combinations_df["cnn_drug_filters"].apply(
+                        (temp_config["cnn_drug_filters"]).__eq__
                     )
                 )
                 & (
-                    completed_param_combinations_df["mlp_hidden_dims_target"].apply(
-                        (temp_config["mlp_hidden_dims_target"]).__eq__
+                    completed_param_combinations_df["cnn_drug_kernels"].apply(
+                        (temp_config["cnn_drug_kernels"]).__eq__
+                    )
+                )
+                & (
+                    completed_param_combinations_df["cnn_target_filters"].apply(
+                        (temp_config["cnn_target_filters"]).__eq__
+                    )
+                )
+                & (
+                    completed_param_combinations_df["cnn_target_kernels"].apply(
+                        (temp_config["cnn_target_kernels"]).__eq__
                     )
                 )
             ].empty:
@@ -210,8 +232,10 @@ def main(
             batch_size=256,
             hidden_dim_drug=int(temp_config["hidden_dim_drug"]),
             hidden_dim_protein=int(temp_config["hidden_dim_protein"]),
-            mlp_hidden_dims_drug=temp_config["mlp_hidden_dims_drug"],
-            mlp_hidden_dims_target=temp_config["mlp_hidden_dims_target"],
+            cnn_drug_filters=temp_config["cnn_drug_filters"],
+            cnn_drug_kernels=temp_config["cnn_drug_kernels"],
+            cnn_target_filters=temp_config["cnn_target_filters"],
+            cnn_target_kernels=temp_config["cnn_target_kernels"],
             general_architecture_version=general_architecture_version,
             cuda_id=str(cuda_id),
             wandb_project_name=wandb_project_name,
