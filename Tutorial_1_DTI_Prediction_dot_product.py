@@ -82,7 +82,7 @@ def main(
     else:
         raise AttributeError("invalid dataset name passed.")
 
-    drug_encoding, target_encoding = "Morgan", "AAC"
+    drug_encoding, target_encoding = "CNN", "CNN"
     print("Processing the dataset...")
     train, val, test = utils.data_process(
         X_drugs,
